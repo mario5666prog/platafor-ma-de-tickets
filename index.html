@@ -1,0 +1,715 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, PlusCircle, Pencil, Trash2, Save, XCircle, LogIn, LogOut, UserPlus, Users, Briefcase, Phone, Mail, IdCard, Calendar, CheckCircle } from 'lucide-react'; // Importa iconos
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils"
+
+// Interfaces
+interface Ticket {
+    idTicket: string;
+    tipoDeTicket: string;
+    quienReporta: string;
+    fecha: string;
+    estatus: string;
+    asesorQueAtiende: string;
+    empresa: string;
+    descripcion?: string; // Agregado para la descripción del problema
+}
+
+interface Empresa {
+    nombre: string;
+    direccion: string;
+    telefono: string;
+    correo: string;
+    nombreDeContacto: string;
+}
+
+interface Asesor {
+    nombre: string;
+    telefono: string;
+    correo: string;
+    numeroDeTrabajador: string;
+}
+
+interface Cliente {
+    nombre: string;
+    correo: string;
+    empresa: string;
+}
+
+interface Usuario {
+    id: string;
+    nombre: string;
+    correo: string;
+    contrasena: string;
+    rol: 'admin' | 'usuario'; // Agregando el rol
+}
+
+// Estados iniciales
+const initialEmpresas: Empresa[] = [
+    { nombre: 'Empresa A', direccion: 'Dirección A', telefono: '1234567890', correo: 'empresaA@example.com', nombreDeContacto: 'Contacto A' },
+    { nombre: 'Empresa B', direccion: 'Dirección B', telefono: '9876543210', correo: 'empresaB@example.com', nombreDeContacto: 'Contacto B' },
+];
+
+const initialAsesores: Asesor[] = [
+    { nombre: 'Asesor 1', telefono: '5551234567', correo: 'asesor1@example.com', numeroDeTrabajador: '1234' },
+    { nombre: 'Asesor 2', telefono: '5559876543', correo: 'asesor2@example.com', numeroDeTrabajador: '5678' },
+];
+
+const initialClientes: Cliente[] = [
+    { nombre: 'Cliente 1', correo: 'cliente1@example.com', empresa: 'Empresa A' },
+    { nombre: 'Cliente 2', correo: 'cliente2@example.com', empresa: 'Empresa B' },
+];
+
+// Funciones de utilidad
+const generarId = () => crypto.randomUUID();
+const formatDate = (date: Date) => date.toLocaleDateString('es-MX');
+
+// Componente para el formulario de tickets (Nuevo y Editar)
+const TicketForm: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (ticket: Ticket) => void;
+    ticket?: Ticket;
+    empresas: Empresa[];
+    asesores: Asesor[];
+    clientes: Cliente[];
+    isEditing: boolean;
+}> = ({ isOpen, onClose, onSubmit, ticket, empresas, asesores, clientes, isEditing }) => {
+    const [idTicket, setIdTicket] = useState(ticket?.idTicket || generarId());
+    const [tipoDeTicket, setTipoDeTicket] = useState(ticket?.tipoDeTicket || '');
+    const [quienReporta, setQuienReporta] = useState(ticket?.quienReporta || '');
+    const [fecha, setFecha] = useState(ticket?.fecha || formatDate(new Date()));
+    const [estatus, setEstatus] = useState(ticket?.estatus || 'Abierto');
+    const [asesorQueAtiende, setAsesorQueAtiende] = useState(ticket?.asesorQueAtiende || '');
+    const [empresa, setEmpresa] = useState(ticket?.empresa || '');
+    const [descripcion, setDescripcion] = useState(ticket?.descripcion || ''); // Nuevo estado para la descripción del problema
+    const [error, setError] = useState<string | null>(null);
+
+    // Reset del formulario al abrir
+    useEffect(() => {
+        if (isOpen) {
+            setIdTicket(ticket?.idTicket || generarId());
+            setTipoDeTicket(ticket?.tipoDeTicket || '');
+            setQuienReporta(ticket?.quienReporta || '');
+            setFecha(ticket?.fecha || formatDate(new Date()));
+            setEstatus(ticket?.estatus || 'Abierto');
+            setAsesorQueAtiende(ticket?.asesorQueAtiende || '');
+            setEmpresa(ticket?.empresa || '');
+            setDescripcion(ticket?.descripcion || ''); // Resetea la descripción
+            setError(null);
+        }
+    }, [isOpen, ticket]);
+
+    const handleGuardar = () => {
+        if (!tipoDeTicket || !quienReporta || !asesorQueAtiende || !empresa) {
+            setError('Por favor, complete todos los campos obligatorios.');
+            return;
+        }
+        if (descripcion && descripcion.length > 500) {
+            setError('La descripción no puede exceder los 500 caracteres.');
+            return;
+        }
+
+        const nuevoTicket: Ticket = {
+            idTicket,
+            tipoDeTicket,
+            quienReporta,
+            fecha,
+            estatus,
+            asesorQueAtiende,
+            empresa,
+            descripcion, // Incluye la descripción en el objeto Ticket
+        };
+        onSubmit(nuevoTicket);
+        onClose();
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[600px] bg-white text-black dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 shadow-lg">
+                <DialogHeader>
+                    <DialogTitle>{isEditing ? 'Editar Ticket' : 'Nuevo Ticket'}</DialogTitle>
+                    <DialogDescription>
+                        {isEditing ? 'Modifica los detalles del ticket.' : 'Ingresa los detalles del nuevo ticket.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="tipo" className="text-right">Tipo de Ticket <span className="text-red-500">*</span></Label>
+                        <Select onValueChange={setTipoDeTicket} value={tipoDeTicket}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecciona un tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Soporte">Soporte</SelectItem>
+                                <SelectItem value="Incidencia">Incidencia</SelectItem>
+                                <SelectItem value="Consulta">Consulta</SelectItem>
+                                <SelectItem value="Problema">Problema</SelectItem>
+                                <SelectItem value="Requerimiento">Requerimiento</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="reporta" className="text-right">Quién Reporta <span className="text-red-500">*</span></Label>
+                        <Input
+                            id="reporta"
+                            value={quienReporta}
+                            onChange={(e) => setQuienReporta(e.target.value)}
+                            className="col-span-3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="fecha" className="text-right">Fecha</Label>
+                        <Input
+                            id="fecha"
+                            type="text"
+                            value={fecha}
+                            onChange={(e) => setFecha(e.target.value)}
+                            className="col-span-3"
+                            disabled
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="estatus" className="text-right">Estatus</Label>
+                        <Select onValueChange={setEstatus} value={estatus}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecciona un estatus" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Abierto">Abierto</SelectItem>
+                                <SelectItem value="En Proceso">En Proceso</SelectItem>
+                                <SelectItem value="Resuelto">Resuelto</SelectItem>
+                                <SelectItem value="Cerrado">Cerrado</SelectItem>
+                                <SelectItem value="Pendiente">Pendiente</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="asesor" className="text-right">Asesor <span className="text-red-500">*</span></Label>
+                        <Select onValueChange={setAsesorQueAtiende} value={asesorQueAtiende}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecciona un asesor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {asesores.map((asesor) => (
+                                    <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre}>
+                                        {asesor.nombre}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="empresa" className="text-right">Empresa <span className="text-red-500">*</span></Label>
+                        <Select onValueChange={setEmpresa} value={empresa}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecciona una empresa" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {empresas.map((empresa) => (
+                                    <SelectItem key={empresa.nombre} value={empresa.nombre}>
+                                        {empresa.nombre}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="descripcion" className="text-right mt-2">Descripción</Label>
+                        <Textarea
+                            id="descripcion"
+                            value={descripcion}
+                            onChange={(e) => setDescripcion(e.target.value)}
+                            placeholder="Ingrese una descripción del problema (máximo 500 caracteres)"
+                            className="col-span-3"
+                            rows={4}
+                            maxLength={500}
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200">
+                        <XCircle className="mr-2 h-4 w-4" /> Cancelar
+                    </Button>
+                    <Button
+                        type="submit"
+                        onClick={handleGuardar}
+                        className="bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
+                    >
+                        <Save className="mr-2 h-4 w-4" /> {isEditing ? 'Actualizar' : 'Guardar'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+// Componente para mostrar la lista de tickets
+const ListaTickets: React.FC<{
+    tickets: Ticket[];
+    onEdit: (id: string) => void;
+    onDelete: (id: string) => void;
+}> = ({ tickets, onEdit, onDelete }) => {
+    return (
+        <div className="rounded-md border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+            <Table>
+                <TableHeader className="bg-gray-50 dark:bg-gray-700/50">
+                    <TableRow>
+                        <TableHead className="w-[100px] text-left text-gray-900 dark:text-gray-100">ID Ticket</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Tipo</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Quién Reporta</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Fecha</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Estatus</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Asesor</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Empresa</TableHead>
+                        <TableHead className="text-left text-gray-900 dark:text-gray-100">Descripción</TableHead> {/* Agregada columna de Descripción */}
+                        <TableHead className="text-right text-gray-900 dark:text-gray-100">Acciones</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <AnimatePresence>
+                        {tickets.map((ticket) => (
+                            <motion.tr
+                                key={ticket.idTicket}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <TableCell className="font-medium text-gray-700 dark:text-gray-300">{ticket.idTicket}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.tipoDeTicket}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.quienReporta}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.fecha}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.estatus}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.asesorQueAtiende}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.empresa}</TableCell>
+                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.descripcion}</TableCell> {/* Muestra la descripción */}
+                                <TableCell className="text-right space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => onEdit(ticket.idTicket)}
+                                        className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:hover:bg-yellow-600 dark:text-yellow-200"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => onDelete(ticket.idTicket)}
+                                        className="bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-700 dark:hover:bg-red-600 dark:text-red-200"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TableCell>
+                            </motion.tr>
+                        ))}
+                    </AnimatePresence>
+                </TableBody>
+            </Table>
+        </div>
+    );
+};
+
+// Componente principal de la aplicación
+const HelpDeskApp = () => {
+    const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
+    const [empresas] = useState<Empresa[]>(initialEmpresas);
+    const [asesores] = useState<Asesor[]>(initialAsesores);
+    const [clientes] = useState<Cliente[]>(initialClientes);
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]); // Para la autenticación
+    const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
+    const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false); // Estado para el modal de registro
+    const [loginError, setLoginError] = useState<string | null>(null);  // Estado para manejar errores de login
+    const [mostrarTickets, setMostrarTickets] = useState(false);
+
+
+    // Valores de prueba para el inicio de sesión
+    const pruebaCorreo = 'mario123@gmail.com';
+    const pruebaContrasena = '123';
+
+    // Cargar datos desde localStorage
+    useEffect(() => {
+        const storedTickets = localStorage.getItem('helpDeskTickets');
+        const storedUsuarios = localStorage.getItem('helpDeskUsuarios');
+        const storedUsuarioLogueado = localStorage.getItem('helpDeskUsuarioLogueado');
+
+        if (storedTickets) {
+            setTickets(JSON.parse(storedTickets));
+        }
+        if (storedUsuarios) {
+            setUsuarios(JSON.parse(storedUsuarios));
+        }
+        if (storedUsuarioLogueado) {
+            const usuario = JSON.parse(storedUsuarioLogueado);
+            // Verificar que el objeto tenga las propiedades antes de usarlo.
+            if (usuario && usuario.correo && usuario.contrasena) {
+                setUsuarioLogueado(usuario);
+            }
+        }
+    }, []);
+
+    // Guardar datos en localStorage
+    useEffect(() => {
+        localStorage.setItem('helpDeskTickets', JSON.stringify(tickets));
+        localStorage.setItem('helpDeskUsuarios', JSON.stringify(usuarios));
+        if (usuarioLogueado) {
+            localStorage.setItem('helpDeskUsuarioLogueado', JSON.stringify(usuarioLogueado));
+        } else {
+            localStorage.removeItem('helpDeskUsuarioLogueado'); // Eliminar si no hay usuario logueado
+        }
+    }, [tickets, usuarios, usuarioLogueado]);
+
+    const handleAgregarTicket = (nuevoTicket: Ticket) => {
+        if (tickets.find(t => t.idTicket === nuevoTicket.idTicket)) {
+            // Si ya existe, actualiza
+            setTickets(tickets.map(t => t.idTicket === nuevoTicket.idTicket ? nuevoTicket : t));
+        } else {
+            // Si no existe, agrega uno nuevo
+            setTickets([...tickets, nuevoTicket]);
+        }
+    };
+
+    const handleEditarTicket = (id: string) => {
+        setEditingTicketId(id);
+        setIsModalOpen(true);
+    };
+
+    const handleEliminarTicket = (id: string) => {
+        setTickets(tickets.filter((ticket) => ticket.idTicket !== id));
+    };
+
+    const ticketAEditar = editingTicketId ? tickets.find((ticket) => ticket.idTicket === editingTicketId) : undefined;
+
+    // Autenticación: Login
+    const handleLogin = (correo: string, contrasena: string) => {
+        const usuarioEncontrado = usuarios.find(u => u.correo === correo && u.contrasena === contrasena);
+        if (usuarioEncontrado) {
+            setUsuarioLogueado(usuarioEncontrado);
+            setLoginError(null);
+            setMostrarTickets(true); // Mostrar los tickets después del login
+        } else {
+            // Si el usuario no existe, crea uno nuevo con los datos proporcionados
+            const nuevoUsuario: Usuario = {
+                id: generarId(),
+                nombre: correo, // Puedes usar el correo como nombre por defecto o pedir el nombre en el formulario de login
+                correo: correo,
+                contrasena: contrasena,
+                rol: 'usuario' // Rol por defecto
+            };
+            setUsuarios([...usuarios, nuevoUsuario]); // Agrega el nuevo usuario a la lista
+            setUsuarioLogueado(nuevoUsuario);  // Inicia sesión con el nuevo usuario
+            setLoginError(null);
+            setMostrarTickets(true);
+        }
+    };
+
+    // Autenticación: Logout
+    const handleLogout = () => {
+        setUsuarioLogueado(null);
+        setMostrarTickets(false); // Ocultar los tickets después del logout
+    };
+
+    // Autenticación: Registro de usuario
+    const handleSignUp = (nuevoUsuario: Usuario) => {
+        // Permite cualquier correo y contraseña
+        if (!nuevoUsuario.nombre || !nuevoUsuario.correo || !nuevoUsuario.contrasena) {
+            return { success: false, error: 'Por favor, complete todos los campos.' };
+        }
+
+        // Verificar si el correo ya existe
+        const correoExistente = usuarios.find(u => u.correo === nuevoUsuario.correo);
+        if (correoExistente) {
+            return { success: false, error: 'El correo electrónico ya está registrado.' };
+        }
+
+        const usuarioConRol = { ...nuevoUsuario, rol: 'usuario' };
+        setUsuarios([...usuarios, usuarioConRol]);
+        return { success: true, error: null };
+    };
+
+    // Componente para el formulario de login
+    const LoginForm = () => {
+        const [correo, setCorreo] = useState('');
+        const [contrasena, setContrasena] = useState('');
+
+        const handleSubmit = (e: React.FormEvent) => {
+            e.preventDefault();
+            handleLogin(correo, contrasena);
+        };
+
+        return (
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {loginError && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error de inicio de sesión</AlertTitle>
+                        <AlertDescription>{loginError}</AlertDescription>
+                    </Alert>
+                )}
+                <div>
+                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Correo electrónico</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        value={correo}
+                        onChange={(e) => setCorreo(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                        placeholder="Ingrese su correo electrónico"
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        value={contrasena}
+                        onChange={(e) => setContrasena(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                        placeholder="Ingrese su contraseña"
+                    />
+                </div>
+                <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800">
+                    <LogIn className="mr-2 h-4 w-4" /> Iniciar sesión
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsSignUpModalOpen(true)}
+                    className="w-full text-gray-700 dark:text-gray-300 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                    <UserPlus className="mr-2 h-4 w-4" /> Registrarse
+                </Button>
+            </form>
+        );
+    };
+
+    // Componente para el formulario de registro (Sign Up)
+    const SignUpForm = () => {
+        const [nombre, setNombre] = useState('');
+        const [correo, setCorreo] = useState('');
+        const [contrasena, setContrasena] = useState('');
+        const [confirmarContrasena, setConfirmarContrasena] = useState('');
+        const [error, setError] = useState<string | null>(null);
+        const [registroExitoso, setRegistroExitoso] = useState(false); // Nuevo estado para indicar registro exitoso
+
+        const handleSubmit = (e: React.FormEvent) => {
+            e.preventDefault();
+            setError(null); // Limpiar errores anteriores
+
+            if (!nombre || !correo || !contrasena || !confirmarContrasena) {
+                setError('Por favor, complete todos los campos.');
+                return;
+            }
+
+            if (contrasena !== confirmarContrasena) {
+                setError('Las contraseñas no coinciden.');
+                return;
+            }
+
+            if (contrasena.length < 6) {
+                setError('La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            const nuevoUsuario: Usuario = {
+                id: generarId(),
+                nombre,
+                correo,
+                contrasena,
+                rol: 'usuario' //
+            };
+
+            const resultadoRegistro = handleSignUp(nuevoUsuario);
+            if (resultadoRegistro.success) {
+                setRegistroExitoso(true); // Establecer el estado de éxito
+                // Opcional: Iniciar sesión automáticamente después del registro
+                handleLogin(correo, contrasena);
+                setIsSignUpModalOpen(false); // Cerrar el modal
+            } else {
+                setError(resultadoRegistro.error || 'Error al registrar usuario.');
+            }
+        };
+
+        return (
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error de registro</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {registroExitoso && (
+                    <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertTitle>Registro Exitoso</AlertTitle>
+                        <AlertDescription>
+                            ¡Te has registrado correctamente! Ahora puedes iniciar sesión.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <div>
+                    <Label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</Label>
+                    <Input
+                        id="nombre"
+                        type="text"
+                        value={nombre}
+                        onChange={(e) => setNombre(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Correo electrónico</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        value={correo}
+                        onChange={(e) => setCorreo(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        value={contrasena}
+                        onChange={(e) => setContrasena(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar contraseña</Label>
+                    <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={confirmarContrasena}
+                        onChange={(e) => setConfirmarContrasena(e.target.value)}
+                        required
+                        className="mt-1 w-full"
+                    />
+                </div>
+                <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white dark:bg-green-700 dark:hover:bg-green-800">
+                    <UserPlus className="mr-2 h-4 w-4" /> Registrarse
+                </Button>
+            </form>
+        );
+    };
+
+    return (
+        <div className="p-4 md:p-8 min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="container mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
+                        <Briefcase className="inline-block mr-2 h-6 w-6 md:h-8 md:w-8" /> Mesa de Ayuda - Help Desk
+                    </h1>
+                    {usuarioLogueado ? (
+                        <div className="flex items-center gap-4">
+                            <span className="text-gray-700 dark:text-gray-300">
+                                 <UserPlus className="inline-block mr-1 h-4 w-4" />
+                                Bienvenido, {usuarioLogueado.nombre}
+                            </span>
+                            <Button
+                                variant="outline"
+                                onClick={handleLogout}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+                            >
+                                <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
+                            </Button>
+                        </div>
+                    ) : (
+                        <LoginForm />
+                    )}
+                </div>
+
+                <Dialog open={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen}>
+                    <DialogContent className="sm:max-w-[425px] bg-white text-black dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700 shadow-lg">
+                        <DialogHeader>
+                            <DialogTitle>Registro de Usuario</DialogTitle>
+                            <DialogDescription>
+                                Crea una cuenta para acceder a la plataforma.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <SignUpForm />
+                    </DialogContent>
+                </Dialog>
+
+                {mostrarTickets && ( // Mostrar solo si mostrarTickets es true
+                    <>
+                        <div className="mb-4">
+                            <Button
+                                onClick={() => {
+                                    setIsModalOpen(true);
+                                    setEditingTicketId(null);
+                                }}
+                                className="bg-green-500 hover:bg-green-600 text-white dark:bg-green-700 dark:hover:bg-green-800"
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4" /> Nuevo Ticket
+                            </Button>
+                        </div>
+
+                        <TicketForm
+                            isOpen={isModalOpen}
+                            onClose={() => setIsModalOpen(false)}
+                            onSubmit={handleAgregarTicket}
+                            ticket={ticketAEditar}
+                            empresas={empresas}
+                            asesores={asesores}
+                            clientes={clientes}
+                            isEditing={!!editingTicketId}
+                        />
+
+                        <ListaTickets tickets={tickets} onEdit={handleEditarTicket} onDelete={handleEliminarTicket} />
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default HelpDeskApp;
+
