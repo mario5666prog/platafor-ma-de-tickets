@@ -3,465 +3,476 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Tickets</title>
+    <title>Plataforma de Tickets de Soporte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f6f8;
-            color: #333;
+        /* Estilos personalizados para los botones */
+        .btn-primary {
+            @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline;
+        }
+        .btn-secondary {
+            @apply bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline;
+        }
+        .btn-success {
+            @apply bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline;
+        }
+        .btn-danger {
+            @apply bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline;
+        }
+        .btn-warning {
+            @apply bg-yellow-500 hover:bg-yellow-700 text-gray-900 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline;
         }
 
-        /* Header */
-        header {
-            background: #007BFF;
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
+        /* Estilos para los mensajes de alerta */
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 24px;
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
         }
-
-        /* Sidebar */
-        aside {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            height: 100vh;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding-top: 20px;
-        }
-
-        aside ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        aside li {
-            margin: 10px 0;
-        }
-
-        aside a {
-            text-decoration: none;
-            color: #333;
-            display: block;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        aside a:hover {
-            background: #007BFF;
-            color: white;
-        }
-
-        /* Main Content */
-        main {
-            margin-left: 270px;
-            padding: 20px;
-        }
-
-        /* Forms and Tables */
-        .form-container,
-        .table-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .form-container label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .form-container input,
-        .form-container select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .form-container button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .form-container button.primary {
-            background: #007BFF;
-        }
-
-        .form-container button.danger {
-            background: #DC3545;
-        }
-
-        .form-container button.success {
-            background: #28A745;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th,
-        table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        table th {
-            background: #f2f2f2;
-            font-weight: bold;
-        }
-
-        table tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        table tr:hover {
-            background: #eaeaea;
-        }
-
-        /* Login and Register */
-        .auth-form {
-            max-width: 400px;
-            margin: 50px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .auth-form h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .auth-form input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .auth-form button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            background: #007BFF;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .auth-form p {
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .auth-form a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-
-        /* Hidden Elements */
-        .hidden {
-            display: none;
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
         }
     </style>
 </head>
-<body>
-    <!-- Login -->
-    <div class="auth-form" id="loginForm">
-        <h2>Iniciar Sesión</h2>
-        <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
-        <input type="password" id="loginPassword" placeholder="Contraseña" required>
-        <button onclick="login()">Ingresar</button>
-        <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
+<body class="bg-gray-100 font-inter antialiased">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6 text-center">Plataforma de Tickets de Soporte</h1>
+
+        <div id="alert-container" class="mb-4">
+            </div>
+
+        <div id="main-content">
+            </div>
     </div>
-
-    <!-- Register -->
-    <div class="auth-form hidden" id="registerForm">
-        <h2>Registrar Usuario</h2>
-        <input type="text" id="registerName" placeholder="Nombre Completo" required>
-        <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
-        <input type="password" id="registerPassword" placeholder="Contraseña" required>
-        <button onclick="registerUser()">Registrar</button>
-        <p><a href="#" onclick="hideRegisterForm()">Volver al Inicio</a></p>
-    </div>
-
-    <!-- Dashboard -->
-    <header>
-        <h1>Plataforma de Tickets</h1>
-    </header>
-
-    <aside id="sidebar" class="hidden">
-        <ul>
-            <li><a href="#" onclick="showTicketsList()">Ver Tickets</a></li>
-            <li><a href="#" onclick="showNewTicketForm()">Crear Ticket</a></li>
-            <li><a href="#" onclick="showCompaniesList()">Ver Empresas</a></li>
-            <li><a href="#" onclick="showAdvisorsList()">Ver Asesores</a></li>
-            <li><a href="#" onclick="showClientsList()">Ver Clientes</a></li>
-            <li><a href="#" onclick="logout()">Cerrar Sesión</a></li>
-        </ul>
-    </aside>
-
-    <main id="mainContent" class="hidden">
-        <!-- Tickets List -->
-        <div class="table-container hidden" id="ticketsList">
-            <h2>Tickets</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Quién Reporta</th>
-                        <th>Fecha</th>
-                        <th>Estatus</th>
-                        <th>Asesor</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketRows">
-                    <!-- Rows will be dynamically added here -->
-                </tbody>
-            </table>
-            <button class="btn primary" onclick="hideTicketsList()">Volver</button>
-        </div>
-
-        <!-- New Ticket Form -->
-        <div class="form-container hidden" id="newTicketForm">
-            <h2>Nuevo Ticket</h2>
-            <label>Tipo de Ticket:</label>
-            <select id="ticketType">
-                <option value="Técnico">Técnico</option>
-                <option value="Soporte">Soporte</option>
-                <option value="Facturación">Facturación</option>
-            </select>
-            <label>Quién Reporta:</label>
-            <input type="text" id="ticketReporter" placeholder="Nombre del que reporta" required>
-            <label>Fecha:</label>
-            <input type="date" id="ticketDate" required>
-            <label>Estatus:</label>
-            <select id="ticketStatus">
-                <option value="Pendiente">Pendiente</option>
-                <option value="En Proceso">En Proceso</option>
-                <option value="Resuelto">Resuelto</option>
-            </select>
-            <label>Asesor:</label>
-            <input type="text" id="ticketAdvisor" placeholder="Nombre del asesor" required>
-            <label>Empresa:</label>
-            <input type="text" id="ticketCompany" placeholder="Nombre de la empresa" required>
-            <button class="btn success" onclick="saveTicket()">Guardar</button>
-            <button class="btn primary" onclick="hideNewTicketForm()">Cancelar</button>
-        </div>
-
-        <!-- Companies List -->
-        <div class="table-container hidden" id="companiesList">
-            <h2>Empresas</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Dirección</th>
-                        <th>Teléfono</th>
-                        <th>Correo</th>
-                        <th>Nombre de Contacto</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="companyRows">
-                    <!-- Rows will be dynamically added here -->
-                </tbody>
-            </table>
-            <button class="btn primary" onclick="hideCompaniesList()">Volver</button>
-        </div>
-
-        <!-- Advisors List -->
-        <div class="table-container hidden" id="advisorsList">
-            <h2>Asesores</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Teléfono</th>
-                        <th>Correo</th>
-                        <th>Número de Trabajador</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="advisorRows">
-                    <!-- Rows will be dynamically added here -->
-                </tbody>
-            </table>
-            <button class="btn primary" onclick="hideAdvisorsList()">Volver</button>
-        </div>
-
-        <!-- Clients List -->
-        <div class="table-container hidden" id="clientsList">
-            <h2>Clientes</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Correo</th>
-                        <th>Empresa</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="clientRows">
-                    <!-- Rows will be dynamically added here -->
-                </tbody>
-            </table>
-            <button class="btn primary" onclick="hideClientsList()">Volver</button>
-        </div>
-    </main>
 
     <script>
-        let isLoggedIn = false;
+        // Función para mostrar mensajes de alerta
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertContainer.appendChild(alertDiv);
 
-        function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            if (email && password) {
-                alert('Inicio de sesión exitoso');
-                isLoggedIn = true;
-                hideLoginForm();
-                showSidebar();
-                showMainContent();
-            } else {
-                alert('Por favor, complete los campos.');
+            // Eliminar el mensaje después de 5 segundos
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Función para cargar contenido dinámicamente
+        function loadContent(page, data = null) {
+            const mainContent = document.getElementById('main-content');
+            let html = '';
+
+            switch (page) {
+                case 'login':
+                    html = `
+                        <div class="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Iniciar Sesión</h2>
+                            <form id="login-form" class="space-y-4">
+                                <div>
+                                    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Usuario:</label>
+                                    <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                                    <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <button type="submit" class="btn-primary w-full">Iniciar Sesión</button>
+                            </form>
+                            <div class="mt-4 text-center">
+                                <a href="#" id="register-link" class="text-blue-500 hover:text-blue-700 focus:outline-none focus:shadow-outline">¿No tienes una cuenta? Regístrate</a>
+                            </div>
+                        </div>
+                    `;
+                    mainContent.innerHTML = html;
+
+                    const loginForm = document.getElementById('login-form');
+                    loginForm.addEventListener('submit', (event) => {
+                        event.preventDefault();
+                        const username = loginForm.username.value;
+                        const password = loginForm.password.value;
+
+                        // Aquí iría la lógica de autenticación real
+                        if (username === 'admin' && password === 'password') {
+                            loadContent('ticketList');
+                            showAlert('Inicio de sesión exitoso!', 'success');
+                        } else {
+                            showAlert('Credenciales incorrectas. Inténtalo de nuevo.', 'danger');
+                        }
+                    });
+
+                    const registerLink = document.getElementById('register-link');
+                    registerLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        loadContent('register');
+                    });
+                    break;
+
+                case 'register':
+                    html = `
+                        <div class="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Registro de Usuario</h2>
+                            <form id="register-form" class="space-y-4">
+                                <div>
+                                    <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                                    <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
+                                    <input type="email" id="email" name="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Usuario:</label>
+                                    <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                                    <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <button type="submit" class="btn-primary w-full">Registrar</button>
+                            </form>
+                            <div class="mt-4 text-center">
+                                <a href="#" id="login-link" class="text-blue-500 hover:text-blue-700 focus:outline-none focus:shadow-outline">¿Ya tienes una cuenta? Inicia sesión</a>
+                            </div>
+                        </div>
+                    `;
+                    mainContent.innerHTML = html;
+
+                    const registerForm = document.getElementById('register-form');
+                    registerForm.addEventListener('submit', (event) => {
+                        event.preventDefault();
+                        // Aquí iría la lógica de registro de usuario
+                        const name = registerForm.name.value;
+                        const email = registerForm.email.value;
+                        const username = registerForm.username.value;
+                        const password = registerForm.password.value;
+
+                        // Validación básica
+                        if (!name || !email || !username || !password) {
+                            showAlert('Todos los campos son obligatorios.', 'danger');
+                            return;
+                        }
+
+                        // Simulación de registro exitoso
+                        showAlert('Registro exitoso! Ahora puedes iniciar sesión.', 'success');
+                        loadContent('login'); // Redirigir al login
+                    });
+
+                    const loginLinkReg = document.getElementById('login-link');
+                    loginLinkReg.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        loadContent('login');
+                    });
+                    break;
+
+                case 'ticketList':
+                    // Si no hay datos, inicializar un array vacío
+                    const tickets = data || JSON.parse(localStorage.getItem('tickets')) || [];
+
+                    html = `
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Lista de Tickets</h2>
+                            <div class="mb-4">
+                                <a href="#" id="create-ticket-link" class="btn-success">Crear Nuevo Ticket</a>
+                            </div>
+                            ${tickets.length > 0 ? `
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full leading-normal shadow-md rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-200 text-gray-700">
+                                        <tr>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">ID Ticket</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Tipo de Ticket</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Quién Reporta</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Fecha</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Estatus</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Asesor</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Empresa</th>
+                                            <th class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white">
+                                        ${tickets.map(ticket => `
+                                        <tr>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.idTicket}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.tipoTicket}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.quienReporta}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.fecha}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.estatus}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.asesor.nombre}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">${ticket.empresa.nombre}</td>
+                                            <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                                                <div class="flex space-x-2">
+                                                    <a href="#" data-id="${ticket.idTicket}" class="btn-primary btn-sm edit-ticket-btn">Editar</a>
+                                                    <a href="#" data-id="${ticket.idTicket}" class="btn-danger btn-sm delete-ticket-btn">Borrar</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            ` : `
+                            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+                                <p class="font-bold">No hay tickets registrados</p>
+                                <p>Crea un nuevo ticket para comenzar.</p>
+                            </div>
+                            `}
+                        </div>
+                    `;
+                    mainContent.innerHTML = html;
+
+                    const createTicketLink = document.getElementById('create-ticket-link');
+                    createTicketLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        loadContent('ticketForm');
+                    });
+
+                    const editButtons = document.querySelectorAll('.edit-ticket-btn');
+                    editButtons.forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            const idTicket = parseInt(event.target.dataset.id);
+                            const ticketToEdit = tickets.find(ticket => ticket.idTicket === idTicket);
+                            loadContent('ticketForm', ticketToEdit);
+                        });
+                    });
+
+                    const deleteButtons = document.querySelectorAll('.delete-ticket-btn');
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            const idTicket = parseInt(event.target.dataset.id);
+                            const ticketToDeleteIndex = tickets.findIndex(ticket => ticket.idTicket === idTicket);
+
+                            if (ticketToDeleteIndex !== -1) {
+                                tickets.splice(ticketToDeleteIndex, 1);
+                                localStorage.setItem('tickets', JSON.stringify(tickets));
+                                showAlert('Ticket eliminado correctamente.', 'success');
+                                loadContent('ticketList', tickets); // Recargar la lista
+                            } else {
+                                showAlert('No se pudo eliminar el ticket.', 'danger');
+                            }
+                        });
+                    });
+                    break;
+
+                case 'ticketForm':
+                    const isEditing = data !== null;
+                    const title = isEditing ? 'Editar Ticket' : 'Crear Nuevo Ticket';
+
+                    // Inicializar valores del formulario
+                    const idTicketValue = isEditing ? data.idTicket : Math.floor(Math.random() * 10000); // Generar ID único
+                    const tipoTicketValue = isEditing ? data.tipoTicket : '';
+                    const quienReportaValue = isEditing ? data.quienReporta : '';
+                    const fechaValue = isEditing ? data.fecha : new Date().toISOString().split('T')[0]; // Fecha actual
+                    const estatusValue = isEditing ? data.estatus : 'Abierto'; // Valor por defecto
+                    const asesorValue = isEditing ? data.asesor : { nombre: '', telefono: '', correo: '', numeroTrabajador: '' };
+                    const empresaValue = isEditing ? data.empresa : { nombre: '', direccion: '', telefono: '', correo: '', nombreContacto: '' };
+                    const clienteValue = isEditing ? data.cliente : { nombre: '', correo: '', empresa: '' };
+
+                    html = `
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-4">${title}</h2>
+                            <form id="ticket-form" class="space-y-4">
+                                <div>
+                                    <label for="idTicket" class="block text-gray-700 text-sm font-bold mb-2">ID Ticket:</label>
+                                    <input type="text" id="idTicket" name="idTicket" value="${idTicketValue}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+                                </div>
+                                <div>
+                                    <label for="tipoTicket" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Ticket:</label>
+                                    <input type="text" id="tipoTicket" name="tipoTicket" value="${tipoTicketValue}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="quienReporta" class="block text-gray-700 text-sm font-bold mb-2">Quién Reporta:</label>
+                                    <input type="text" id="quienReporta" name="quienReporta" value="${quienReportaValue}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="fecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
+                                    <input type="date" id="fecha" name="fecha" value="${fechaValue}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </div>
+                                <div>
+                                    <label for="estatus" class="block text-gray-700 text-sm font-bold mb-2">Estatus:</label>
+                                    <select id="estatus" name="estatus" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                        <option value="Abierto" ${estatusValue === 'Abierto' ? 'selected' : ''}>Abierto</option>
+                                        <option value="En Proceso" ${estatusValue === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                        <option value="Cerrado" ${estatusValue === 'Cerrado' ? 'selected' : ''}>Cerrado</option>
+                                    </select>
+                                </div>
+                                <div class="border-t border-gray-200 pt-4 mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Datos del Asesor</h3>
+                                    <div>
+                                        <label for="asesorNombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                                        <input type="text" id="asesorNombre" name="asesorNombre" value="${asesorValue.nombre}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="asesorTelefono" class="block text-gray-700 text-sm font-bold mb-2">Teléfono:</label>
+                                        <input type="text" id="asesorTelefono" name="asesorTelefono" value="${asesorValue.telefono}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="asesorCorreo" class="block text-gray-700 text-sm font-bold mb-2">Correo:</label>
+                                        <input type="email" id="asesorCorreo" name="asesorCorreo" value="${asesorValue.correo}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="asesorNumeroTrabajador" class="block text-gray-700 text-sm font-bold mb-2">Número de Trabajador:</label>
+                                        <input type="text" id="asesorNumeroTrabajador" name="asesorNumeroTrabajador" value="${asesorValue.numeroTrabajador}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 pt-4 mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Datos de la Empresa</h3>
+                                    <div>
+                                        <label for="empresaNombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                                        <input type="text" id="empresaNombre" name="empresaNombre" value="${empresaValue.nombre}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="empresaDireccion" class="block text-gray-700 text-sm font-bold mb-2">Dirección:</label>
+                                        <input type="text" id="empresaDireccion" name="empresaDireccion" value="${empresaValue.direccion}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                         <label for="empresaTelefono" class="block text-gray-700 text-sm font-bold mb-2">Teléfono:</label>
+                                        <input type="text" id="empresaTelefono" name="empresaTelefono" value="${empresaValue.telefono}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="empresaCorreo" class="block text-gray-700 text-sm font-bold mb-2">Correo:</label>
+                                        <input type="email" id="empresaCorreo" name="empresaCorreo" value="${empresaValue.correo}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="empresaNombreContacto" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Contacto:</label>
+                                        <input type="text" id="empresaNombreContacto" name="empresaNombreContacto" value="${empresaValue.nombreContacto}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                </div>
+
+                                 <div class="border-t border-gray-200 pt-4 mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Datos del Cliente</h3>
+                                    <div>
+                                        <label for="clienteNombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                                        <input type="text" id="clienteNombre" name="clienteNombre" value="${clienteValue.nombre}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="clienteCorreo" class="block text-gray-700 text-sm font-bold mb-2">Correo:</label>
+                                        <input type="email" id="clienteCorreo" name="clienteCorreo" value="${clienteValue.correo}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                    <div>
+                                        <label for="clienteEmpresa" class="block text-gray-700 text-sm font-bold mb-2">Empresa:</label>
+                                        <input type="text" id="clienteEmpresa" name="clienteEmpresa" value="${clienteValue.empresa}" class="shadow appearance-noneborder rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-primary w-full">${isEditing ? 'Guardar Cambios' : 'Crear Ticket'}</button>
+                                <button type="button" id="cancel-btn" class="btn-secondary w-full mt-2">Cancelar</button>
+                            </form>
+                        </div>
+                    `;
+                    mainContent.innerHTML = html;
+
+                    const ticketForm = document.getElementById('ticket-form');
+                    ticketForm.addEventListener('submit', (event) => {
+                        event.preventDefault();
+
+                        // Recoger los valores del formulario
+                        const idTicket = parseInt(ticketForm.idTicket.value);
+                        const tipoTicket = ticketForm.tipoTicket.value;
+                        const quienReporta = ticketForm.quienReporta.value;
+                        const fecha = ticketForm.fecha.value;
+                        const estatus = ticketForm.estatus.value;
+                        const asesorNombre = ticketForm.asesorNombre.value;
+                        const asesorTelefono = ticketForm.asesorTelefono.value;
+                        const asesorCorreo = ticketForm.asesorCorreo.value;
+                        const asesorNumeroTrabajador = ticketForm.asesorNumeroTrabajador.value;
+                        const empresaNombre = ticketForm.empresaNombre.value;
+                        const empresaDireccion = ticketForm.empresaDireccion.value;
+                        const empresaTelefono = ticketForm.empresaTelefono.value;
+                        const empresaCorreo = ticketForm.empresaCorreo.value;
+                        const empresaNombreContacto = ticketForm.empresaNombreContacto.value;
+                        const clienteNombre = ticketForm.clienteNombre.value;
+                        const clienteCorreo = ticketForm.clienteCorreo.value;
+                        const clienteEmpresa = ticketForm.clienteEmpresa.value;
+
+                        // Validar que los campos obligatorios estén llenos
+                         if (!tipoTicket || !quienReporta || !fecha || !estatus) {
+                            showAlert('Por favor, complete todos los campos obligatorios.', 'danger');
+                            return;
+                        }
+                        // Crear objetos para las entidades anidadas
+                        const asesor = {
+                            nombre: asesorNombre,
+                            telefono: asesorTelefono,
+                            correo: asesorCorreo,
+                            numeroTrabajador: asesorNumeroTrabajador
+                        };
+
+                        const empresa = {
+                            nombre: empresaNombre,
+                            direccion: empresaDireccion,
+                            telefono: empresaTelefono,
+                            correo: empresaCorreo,
+                            nombreContacto: empresaNombreContacto
+                        };
+                        const cliente = {
+                            nombre: clienteNombre,
+                            correo: clienteCorreo,
+                            empresa: clienteEmpresa
+                        }
+
+                        // Crear el objeto ticket
+                        const ticket = {
+                            idTicket,
+                            tipoTicket,
+                            quienReporta,
+                            fecha,
+                            estatus,
+                            asesor,
+                            empresa,
+                            cliente
+                        };
+
+                        // Guardar el ticket
+                        let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+                        if (isEditing) {
+                            // Actualizar un ticket existente
+                            const index = tickets.findIndex(t => t.idTicket === idTicket);
+                            if (index !== -1) {
+                                tickets[index] = ticket;
+                                showAlert('Ticket actualizado correctamente.', 'success');
+                            } else {
+                                showAlert('No se pudo actualizar el ticket.', 'danger');
+                                return;
+                            }
+                        } else {
+                            // Agregar un nuevo ticket
+                            tickets.push(ticket);
+                            showAlert('Ticket creado correctamente.', 'success');
+                        }
+                        localStorage.setItem('tickets', JSON.stringify(tickets));
+                        loadContent('ticketList'); // Volver a la lista
+                    });
+
+                    const cancelBtn = document.getElementById('cancel-btn');
+                    cancelBtn.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        loadContent('ticketList'); // Volver a la lista
+                    });
+                    break;
+
+                default:
+                    loadContent('login'); // Cargar el login por defecto
             }
         }
 
-        function registerUser() {
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            if (name && email && password) {
-                alert('Usuario registrado exitosamente');
-                hideRegisterForm();
-            } else {
-                alert('Por favor, complete todos los campos.');
-            }
-        }
-
-        function logout() {
-            isLoggedIn = false;
-            hideSidebar();
-            hideMainContent();
-            showLoginForm();
-        }
-
-        function showLoginForm() {
-            document.getElementById('loginForm').classList.remove('hidden');
-        }
-
-        function hideLoginForm() {
-            document.getElementById('loginForm').classList.add('hidden');
-        }
-
-        function showRegisterForm() {
-            document.getElementById('registerForm').classList.remove('hidden');
-        }
-
-        function hideRegisterForm() {
-            document.getElementById('registerForm').classList.add('hidden');
-        }
-
-        function showSidebar() {
-            document.getElementById('sidebar').classList.remove('hidden');
-        }
-
-        function hideSidebar() {
-            document.getElementById('sidebar').classList.add('hidden');
-        }
-
-        function showMainContent() {
-            document.getElementById('mainContent').classList.remove('hidden');
-        }
-
-        function hideMainContent() {
-            document.getElementById('mainContent').classList.add('hidden');
-        }
-
-        function showTicketsList() {
-            hideAllSections();
-            document.getElementById('ticketsList').classList.remove('hidden');
-        }
-
-        function hideTicketsList() {
-            document.getElementById('ticketsList').classList.add('hidden');
-        }
-
-        function showNewTicketForm() {
-            hideAllSections();
-            document.getElementById('newTicketForm').classList.remove('hidden');
-        }
-
-        function hideNewTicketForm() {
-            document.getElementById('newTicketForm').classList.add('hidden');
-        }
-
-        function saveTicket() {
-            alert('Ticket guardado exitosamente');
-            hideNewTicketForm();
-            showTicketsList();
-        }
-
-        function showCompaniesList() {
-            hideAllSections();
-            document.getElementById('companiesList').classList.remove('hidden');
-        }
-
-        function hideCompaniesList() {
-            document.getElementById('companiesList').classList.add('hidden');
-        }
-
-        function showAdvisorsList() {
-            hideAllSections();
-            document.getElementById('advisorsList').classList.remove('hidden');
-        }
-
-        function hideAdvisorsList() {
-            document.getElementById('advisorsList').classList.add('hidden');
-        }
-
-        function showClientsList() {
-            hideAllSections();
-            document.getElementById('clientsList').classList.remove('hidden');
-        }
-
-        function hideClientsList() {
-            document.getElementById('clientsList').classList.add('hidden');
-        }
-
-        function hideAllSections() {
-            const sections = ['ticketsList', 'newTicketForm', 'companiesList', 'advisorsList', 'clientsList'];
-            sections.forEach(section => {
-                document.getElementById(section).classList.add('hidden');
-            });
-        }
+        // Cargar el login al inicio
+        loadContent('login');
     </script>
 </body>
 </html>
-```
+
