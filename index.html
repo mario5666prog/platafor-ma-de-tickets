@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,248 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Tickets</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        form { margin-bottom: 20px; }
-        label { display: block; margin: 5px 0; }
-        input, select { width: 100%; padding: 8px; margin: 5px 0; }
-        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
+        /* Estilos Generales */
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; text-align: center; }
+        .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        form input, form select { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { display: inline-block; padding: 10px 15px; border-radius: 4px; text-decoration: none; color: white; border: none; cursor: pointer; }
+        .btn-login { background: #4CAF50; } .btn-register { background: #2196F3; } .btn-editar { background: #FFC107; }
+        .btn-borrar { background: #f44336; } .btn-nuevo { background: #009688; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .login-form { max-width: 300px; margin: auto; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #2196F3; color: white; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Login -->
-        <div id="loginForm" style="display:block;">
-            <h2>Iniciar Sesión</h2>
-            <form id="login">
-                <label for="username">Usuario:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Contraseña:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit">Iniciar Sesión</button>
-            </form>
-        </div>
 
-        <!-- Registrar Usuario -->
-        <div id="registerForm" style="display:none;">
-            <h2>Registrar Nuevo Usuario</h2>
-            <form id="registerUser">
-                <label for="newUsername">Usuario:</label>
-                <input type="text" id="newUsername" name="newUsername" required>
-                <label for="newPassword">Contraseña:</label>
-                <input type="password" id="newPassword" name="newPassword" required>
-                <button type="submit">Registrar</button>
-            </form>
-        </div>
+    <!-- Login -->
+    <div id="login" class="container">
+        <h2>Iniciar Sesión</h2>
+        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
+            <input type="text" placeholder="Usuario" required>
+            <input type="password" placeholder="Contraseña" required>
+            <button class="btn btn-login" type="submit">Entrar</button>
+        </form>
+        <p>¿No tienes cuenta? <a href="#" onclick="showSection('register')">Regístrate aquí</a></p>
+    </div>
 
-        <!-- Listado de Tickets -->
-        <div id="ticketList" style="display:none;">
-            <h2>Listado de Tickets</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Ticket</th>
-                        <th>Tipo de Ticket</th>
-                        <th>Quien Reporta</th>
-                        <th>Fecha</th>
-                        <th>Estatus</th>
-                        <th>Asesor que Atiende</th>
-                        <th>Empresa</th>
-                        <th>Opciones</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketsTableBody">
-                    <!-- Datos dinámicos -->
-                </tbody>
-            </table>
-            <button onclick="showNewTicketForm()">Nuevo Ticket</button>
-        </div>
+    <!-- Registro -->
+    <div id="register" class="container hidden">
+        <h2>Registro de Usuario</h2>
+        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
+            <input type="text" placeholder="Usuario" required>
+            <input type="email" placeholder="Correo" required>
+            <input type="password" placeholder="Contraseña" required>
+            <button class="btn btn-register" type="submit">Registrarse</button>
+        </form>
+        <p>¿Ya tienes cuenta? <a href="#" onclick="showSection('login')">Inicia sesión</a></p>
+    </div>
 
-        <!-- Formulario Nuevo Ticket -->
-        <div id="newTicketForm" style="display:none;">
-            <h2>Nuevo Ticket</h2>
-            <form id="createTicket">
-                <label for="tipoTicket">Tipo de Ticket:</label>
-                <input type="text" id="tipoTicket" name="tipoTicket" required>
-                <label for="quienReporta">Quien Reporta:</label>
-                <input type="text" id="quienReporta" name="quienReporta" required>
-                <label for="fecha">Fecha:</label>
-                <input type="date" id="fecha" name="fecha" required>
-                <label for="estatus">Estatus:</label>
-                <select id="estatus" name="estatus" required>
-                    <option value="Abierto">Abierto</option>
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Cerrado">Cerrado</option>
-                </select>
-                <label for="asesor">Asesor que Atiende:</label>
-                <input type="text" id="asesor" name="asesor" required>
-                <label for="empresa">Empresa:</label>
-                <input type="text" id="empresa" name="empresa" required>
-                <button type="submit">Guardar</button>
-            </form>
-        </div>
+    <!-- Listado de Tickets -->
+    <div id="tickets_list" class="container hidden">
+        <h2>Listado de Tickets</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th><th>Tipo</th><th>Reporta</th><th>Fecha</th><th>Estatus</th><th>Asesor</th><th>Empresa</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="ticketTable">
+                <tr>
+                    <td>1</td><td>Incidencia</td><td>Juan Pérez</td><td>2025-03-23</td><td>Pendiente</td><td>Ana López</td><td>Empresa XYZ</td>
+                    <td>
+                        <button class="btn btn-editar" onclick="showSection('ticket_edit')">Editar</button>
+                        <button class="btn btn-borrar" onclick="deleteTicket(this)">Borrar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <button class="btn btn-nuevo" onclick="showSection('ticket_new')">Nuevo Ticket</button>
+    </div>
 
-        <!-- Formulario Editar Ticket -->
-        <div id="editTicketForm" style="display:none;">
-            <h2>Editar Ticket</h2>
-            <form id="updateTicket">
-                <!-- Datos dinámicos -->
-                <button type="submit">Actualizar</button>
-            </form>
-        </div>
+    <!-- Nuevo Ticket -->
+    <div id="ticket_new" class="container hidden">
+        <h2>Nuevo Ticket</h2>
+        <form onsubmit="event.preventDefault(); addTicket(); showSection('tickets_list');">
+            <select id="tipo_ticket">
+                <option value="incidencia">Incidencia</option>
+                <option value="solicitud">Solicitud</option>
+                <option value="consulta">Consulta</option>
+            </select>
+            <input type="text" id="quien_reporta" placeholder="Quien Reporta" required>
+            <input type="datetime-local" id="fecha" required>
+            <select id="estatus">
+                <option value="pendiente">Pendiente</option>
+                <option value="en_proceso">En Proceso</option>
+                <option value="cerrado">Cerrado</option>
+            </select>
+            <input type="text" id="asesor" placeholder="Asesor" required>
+            <input type="text" id="empresa" placeholder="Empresa" required>
+            <button class="btn btn-nuevo" type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <!-- Editar Ticket -->
+    <div id="ticket_edit" class="container hidden">
+        <h2>Editar Ticket</h2>
+        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
+            <input type="text" value="Juan Pérez" required>
+            <input type="datetime-local" value="2025-03-23T10:30" required>
+            <select>
+                <option value="pendiente" selected>Pendiente</option>
+                <option value="en_proceso">En Proceso</option>
+                <option value="cerrado">Cerrado</option>
+            </select>
+            <input type="text" value="Ana López" required>
+            <input type="text" value="Empresa XYZ" required>
+            <button class="btn btn-editar" type="submit">Actualizar</button>
+            <button class="btn btn-borrar" type="button" onclick="showSection('tickets_list')">Cancelar</button>
+        </form>
     </div>
 
     <script>
-        let users = {};
-        let tickets = [];
-        let currentUser = null;
-
-        // Funciones de login y registro
-        document.getElementById('login').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            if (users[username] && users[username].password === password) {
-                currentUser = username;
-                hideLoginForm();
-                showTicketList();
-            } else {
-                alert("Credenciales incorrectas.");
-            }
-        });
-
-        document.getElementById('registerUser').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const newUsername = document.getElementById('newUsername').value;
-            const newPassword = document.getElementById('newPassword').value;
-            users[newUsername] = { password: newPassword };
-            alert("Usuario registrado exitosamente.");
-        });
-
-        function hideLoginForm() {
-            document.getElementById('loginForm').style.display = 'none';
+        function showSection(sectionId) {
+            document.querySelectorAll('.container').forEach(div => div.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
         }
 
-        function showRegisterForm() {
-            document.getElementById('registerForm').style.display = 'block';
+        function addTicket() {
+            let tipo = document.getElementById("tipo_ticket").value;
+            let quien = document.getElementById("quien_reporta").value;
+            let fecha = document.getElementById("fecha").value;
+            let estatus = document.getElementById("estatus").value;
+            let asesor = document.getElementById("asesor").value;
+            let empresa = document.getElementById("empresa").value;
+
+            let table = document.getElementById("ticketTable");
+            let row = table.insertRow();
+            row.innerHTML = `<td>${table.rows.length}</td><td>${tipo}</td><td>${quien}</td><td>${fecha}</td><td>${estatus}</td><td>${asesor}</td><td>${empresa}</td>
+                             <td><button class='btn btn-editar' onclick="showSection('ticket_edit')">Editar</button>
+                                 <button class='btn btn-borrar' onclick="deleteTicket(this)">Borrar</button></td>`;
         }
 
-        function showTicketList() {
-            document.getElementById('ticketList').style.display = 'block';
-            renderTickets();
-        }
-
-        // Funciones de Tickets
-        function renderTickets() {
-            const tbody = document.getElementById('ticketsTableBody');
-            tbody.innerHTML = '';
-            tickets.forEach(ticket => {
-                const row = `<tr>
-                    <td>${ticket.id}</td>
-                    <td>${ticket.tipoTicket}</td>
-                    <td>${ticket.quienReporta}</td>
-                    <td>${ticket.fecha}</td>
-                    <td>${ticket.estatus}</td>
-                    <td>${ticket.asesor}</td>
-                    <td>${ticket.empresa}</td>
-                    <td>
-                        <button onclick="editTicket(${ticket.id})">Editar</button>
-                        <button onclick="deleteTicket(${ticket.id})">Borrar</button>
-                    </td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
-
-        document.getElementById('createTicket').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const tipoTicket = document.getElementById('tipoTicket').value;
-            const quienReporta = document.getElementById('quienReporta').value;
-            const fecha = document.getElementById('fecha').value;
-            const estatus = document.getElementById('estatus').value;
-            const asesor = document.getElementById('asesor').value;
-            const empresa = document.getElementById('empresa').value;
-
-            const newTicket = {
-                id: tickets.length + 1,
-                tipoTicket,
-                quienReporta,
-                fecha,
-                estatus,
-                asesor,
-                empresa
-            };
-
-            tickets.push(newTicket);
-            renderTickets();
-            hideNewTicketForm();
-        });
-
-        function showNewTicketForm() {
-            document.getElementById('newTicketForm').style.display = 'block';
-        }
-
-        function hideNewTicketForm() {
-            document.getElementById('newTicketForm').style.display = 'none';
-        }
-
-        function editTicket(id) {
-            const ticketToEdit = tickets.find(ticket => ticket.id === id);
-            document.getElementById('updateTicket').innerHTML = `
-                <label for="editTipoTicket">Tipo de Ticket:</label>
-                <input type="text" id="editTipoTicket" value="${ticketToEdit.tipoTicket}" required>
-                <label for="editQuienReporta">Quien Reporta:</label>
-                <input type="text" id="editQuienReporta" value="${ticketToEdit.quienReporta}" required>
-                <label for="editFecha">Fecha:</label>
-                <input type="date" id="editFecha" value="${ticketToEdit.fecha}" required>
-                <label for="editEstatus">Estatus:</label>
-                <select id="editEstatus" required>
-                    <option value="Abierto" ${ticketToEdit.estatus === 'Abierto' ? 'selected' : ''}>Abierto</option>
-                    <option value="En Proceso" ${ticketToEdit.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                    <option value="Cerrado" ${ticketToEdit.estatus === 'Cerrado' ? 'selected' : ''}>Cerrado</option>
-                </select>
-                <label for="editAsesor">Asesor que Atiende:</label>
-                <input type="text" id="editAsesor" value="${ticketToEdit.asesor}" required>
-                <label for="editEmpresa">Empresa:</label>
-                <input type="text" id="editEmpresa" value="${ticketToEdit.empresa}" required>
-                <button type="submit">Actualizar</button>
-            `;
-            document.getElementById('updateTicket').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const updatedTicket = {
-                    id,
-                    tipoTicket: document.getElementById('editTipoTicket').value,
-                    quienReporta: document.getElementById('editQuienReporta').value,
-                    fecha: document.getElementById('editFecha').value,
-                    estatus: document.getElementById('editEstatus').value,
-                    asesor: document.getElementById('editAsesor').value,
-                    empresa: document.getElementById('editEmpresa').value
-                };
-                const index = tickets.findIndex(ticket => ticket.id === id);
-                tickets[index] = updatedTicket;
-                renderTickets();
-                hideEditTicketForm();
-            });
-            document.getElementById('editTicketForm').style.display = 'block';
-        }
-
-        function hideEditTicketForm() {
-            document.getElementById('editTicketForm').style.display = 'none';
-        }
-
-        function deleteTicket(id) {
-            const index = tickets.findIndex(ticket => ticket.id === id);
-            if (index > -1) {
-                tickets.splice(index, 1);
-                renderTickets();
+        function deleteTicket(btn) {
+            if (confirm("¿Deseas borrar este ticket?")) {
+                let row = btn.parentNode.parentNode;
+                row.parentNode.removeChild(row);
             }
         }
     </script>
+
 </body>
 </html>
-```
+
