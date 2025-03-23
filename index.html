@@ -1,107 +1,274 @@
-// Backend: Node.js con Express y MongoDB
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const app = express();
-const PORT = 5000;
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Tickets</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; color: white; }
+        .btn-primary { background-color: #007BFF; }
+        .btn-danger { background-color: #DC3545; }
+        .btn-success { background-color: #28A745; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        label { font-weight: bold; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Plataforma de Tickets</h1>
 
-app.use(express.json());
-app.use(cors());
+        <!-- Login -->
+        <div id="loginForm" class="container">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
+            <input type="password" id="loginPassword" placeholder="Contraseña" required>
+            <button class="btn btn-primary" onclick="login()">Ingresar</button>
+            <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
+        </div>
 
-// Conexión a MongoDB
-mongoose.connect('mongodb://localhost:27017/ticket_system', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+        <!-- Register -->
+        <div id="registerForm" class="container hidden">
+            <h2>Registrar Usuario</h2>
+            <input type="text" id="registerName" placeholder="Nombre Completo" required>
+            <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
+            <input type="password" id="registerPassword" placeholder="Contraseña" required>
+            <button class="btn btn-success" onclick="registerUser()">Registrar</button>
+            <p><a href="#" onclick="hideRegisterForm()">Volver al Inicio</a></p>
+        </div>
 
-// Modelos
-const TicketSchema = new mongoose.Schema({
-    tipo: String,
-    reportante: String,
-    fecha: { type: Date, default: Date.now },
-    estatus: String,
-    asesor: String,
-    empresa: String
-});
-const Ticket = mongoose.model('Ticket', TicketSchema);
+        <!-- Dashboard -->
+        <div id="dashboard" class="container hidden">
+            <h2>Panel de Control</h2>
+            <button class="btn btn-primary" onclick="showTickets()">Ver Tickets</button>
+            <button class="btn btn-primary" onclick="showNewTicketForm()">Crear Ticket</button>
+            <button class="btn btn-primary" onclick="showCompanies()">Ver Empresas</button>
+            <button class="btn btn-primary" onclick="showAdvisors()">Ver Asesores</button>
+            <button class="btn btn-primary" onclick="showClients()">Ver Clientes</button>
+            <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+        </div>
 
-const UsuarioSchema = new mongoose.Schema({
-    nombre: String,
-    correo: { type: String, unique: true },
-    password: String
-});
-const Usuario = mongoose.model('Usuario', UsuarioSchema);
+        <!-- Tickets -->
+        <div id="ticketsList" class="container hidden">
+            <h2>Tickets</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Quién Reporta</th>
+                        <th>Fecha</th>
+                        <th>Estatus</th>
+                        <th>Asesor</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketRows">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="hideTickets()">Volver</button>
+        </div>
 
-// Registro de usuario
-app.post('/register', async (req, res) => {
-    try {
-        const { nombre, correo, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const usuario = new Usuario({ nombre, correo, password: hashedPassword });
-        await usuario.save();
-        res.status(201).json({ message: 'Usuario registrado correctamente' });
-    } catch (error) {
-        res.status(400).json({ error: 'Error al registrar usuario' });
-    }
-});
+        <!-- New Ticket -->
+        <div id="newTicketForm" class="container hidden">
+            <h2>Nuevo Ticket</h2>
+            <label>Tipo de Ticket:</label>
+            <select id="ticketType">
+                <option value="Técnico">Técnico</option>
+                <option value="Soporte">Soporte</option>
+                <option value="Facturación">Facturación</option>
+            </select>
+            <label>Quién Reporta:</label>
+            <input type="text" id="ticketReporter" placeholder="Nombre del que reporta" required>
+            <label>Fecha:</label>
+            <input type="date" id="ticketDate" required>
+            <label>Estatus:</label>
+            <select id="ticketStatus">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Resuelto">Resuelto</option>
+            </select>
+            <label>Asesor:</label>
+            <input type="text" id="ticketAdvisor" placeholder="Nombre del asesor" required>
+            <label>Empresa:</label>
+            <input type="text" id="ticketCompany" placeholder="Nombre de la empresa" required>
+            <button class="btn btn-success" onclick="saveTicket()">Guardar</button>
+            <button class="btn btn-primary" onclick="hideNewTicketForm()">Cancelar</button>
+        </div>
 
-// Login
-app.post('/login', async (req, res) => {
-    try {
-        const { correo, password } = req.body;
-        const usuario = await Usuario.findOne({ correo });
-        if (!usuario || !(await bcrypt.compare(password, usuario.password))) {
-            return res.status(400).json({ error: 'Credenciales inválidas' });
+        <!-- Companies -->
+        <div id="companiesList" class="container hidden">
+            <h2>Empresas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Dirección</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Nombre de Contacto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="companyRows">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="hideCompanies()">Volver</button>
+        </div>
+
+        <!-- Advisors -->
+        <div id="advisorsList" class="container hidden">
+            <h2>Asesores</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Número de Trabajador</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="advisorRows">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="hideAdvisors()">Volver</button>
+        </div>
+
+        <!-- Clients -->
+        <div id="clientsList" class="container hidden">
+            <h2>Clientes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Empresa</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientRows">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="hideClients()">Volver</button>
+        </div>
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (email && password) {
+                alert('Inicio de sesión exitoso');
+                isLoggedIn = true;
+                hideLoginForm();
+                showDashboard();
+            } else {
+                alert('Por favor, complete los campos.');
+            }
         }
-        const token = jwt.sign({ id: usuario._id }, 'secreto', { expiresIn: '1h' });
-        res.json({ token });
-    } catch (error) {
-        res.status(500).json({ error: 'Error en el servidor' });
-    }
-});
 
-// Obtener todos los tickets
-app.get('/tickets', async (req, res) => {
-    try {
-        const tickets = await Ticket.find();
-        res.json(tickets);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener tickets' });
-    }
-});
+        function registerUser() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            if (name && email && password) {
+                alert('Usuario registrado exitosamente');
+                hideRegisterForm();
+            } else {
+                alert('Por favor, complete todos los campos.');
+            }
+        }
 
-// Crear un ticket
-app.post('/tickets', async (req, res) => {
-    try {
-        const ticket = new Ticket(req.body);
-        await ticket.save();
-        res.status(201).json({ message: 'Ticket creado correctamente' });
-    } catch (error) {
-        res.status(400).json({ error: 'Error al crear ticket' });
-    }
-});
+        function logout() {
+            isLoggedIn = false;
+            hideDashboard();
+            showLoginForm();
+        }
 
-// Editar un ticket
-app.put('/tickets/:id', async (req, res) => {
-    try {
-        await Ticket.findByIdAndUpdate(req.params.id, req.body);
-        res.json({ message: 'Ticket actualizado correctamente' });
-    } catch (error) {
-        res.status(400).json({ error: 'Error al actualizar ticket' });
-    }
-});
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
 
-// Eliminar un ticket
-app.delete('/tickets/:id', async (req, res) => {
-    try {
-        await Ticket.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Ticket eliminado correctamente' });
-    } catch (error) {
-        res.status(400).json({ error: 'Error al eliminar ticket' });
-    }
-});
+        function hideLoginForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+        }
 
-app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
+        function showRegisterForm() {
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
 
+        function hideRegisterForm() {
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function hideDashboard() {
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        function showTickets() {
+            document.getElementById('ticketsList').classList.remove('hidden');
+        }
+
+        function hideTickets() {
+            document.getElementById('ticketsList').classList.add('hidden');
+        }
+
+        function showNewTicketForm() {
+            document.getElementById('newTicketForm').classList.remove('hidden');
+        }
+
+        function hideNewTicketForm() {
+            document.getElementById('newTicketForm').classList.add('hidden');
+        }
+
+        function saveTicket() {
+            alert('Ticket guardado exitosamente');
+            hideNewTicketForm();
+        }
+
+        function showCompanies() {
+            document.getElementById('companiesList').classList.remove('hidden');
+        }
+
+        function hideCompanies() {
+            document.getElementById('companiesList').classList.add('hidden');
+        }
+
+        function showAdvisors() {
+            document.getElementById('advisorsList').classList.remove('hidden');
+        }
+
+        function hideAdvisors() {
+            document.getElementById('advisorsList').classList.add('hidden');
+        }
+
+        function showClients() {
+            document.getElementById('clientsList').classList.remove('hidden');
+        }
+
+        function hideClients() {
+            document.getElementById('clientsList').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+```
