@@ -6,58 +6,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Tickets</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; color: white; }
-        .btn-primary { background-color: #007BFF; }
-        .btn-danger { background-color: #DC3545; }
-        .btn-success { background-color: #28A745; }
-        .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        table, th, td { border: 1px solid #ddd; }
-        th, td { padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        label { font-weight: bold; }
-        .error { color: red; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background: #007BFF;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        /* Sidebar */
+        aside {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding-top: 20px;
+        }
+
+        aside ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        aside li {
+            margin: 10px 0;
+        }
+
+        aside a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        aside a:hover {
+            background: #007BFF;
+            color: white;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 270px;
+            padding: 20px;
+        }
+
+        /* Forms and Tables */
+        .form-container,
+        .table-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-container input,
+        .form-container select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-container button.primary {
+            background: #007BFF;
+        }
+
+        .form-container button.danger {
+            background: #DC3545;
+        }
+
+        .form-container button.success {
+            background: #28A745;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background: #f2f2f2;
+            font-weight: bold;
+        }
+
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        table tr:hover {
+            background: #eaeaea;
+        }
+
+        /* Login and Register */
+        .auth-form {
+            max-width: 400px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-form h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            background: #007BFF;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .auth-form p {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .auth-form a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        /* Hidden Elements */
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login -->
+    <div class="auth-form" id="loginForm">
+        <h2>Iniciar Sesión</h2>
+        <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
+        <input type="password" id="loginPassword" placeholder="Contraseña" required>
+        <button onclick="login()">Ingresar</button>
+        <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
+    </div>
+
+    <!-- Register -->
+    <div class="auth-form hidden" id="registerForm">
+        <h2>Registrar Usuario</h2>
+        <input type="text" id="registerName" placeholder="Nombre Completo" required>
+        <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
+        <input type="password" id="registerPassword" placeholder="Contraseña" required>
+        <button onclick="registerUser()">Registrar</button>
+        <p><a href="#" onclick="hideRegisterForm()">Volver al Inicio</a></p>
+    </div>
+
+    <!-- Dashboard -->
+    <header>
         <h1>Plataforma de Tickets</h1>
+    </header>
 
-        <!-- Login -->
-        <div id="loginForm" class="container">
-            <h2>Iniciar Sesión</h2>
-            <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
-            <input type="password" id="loginPassword" placeholder="Contraseña" required>
-            <button class="btn btn-primary" onclick="login()">Ingresar</button>
-            <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
-        </div>
+    <aside id="sidebar" class="hidden">
+        <ul>
+            <li><a href="#" onclick="showTicketsList()">Ver Tickets</a></li>
+            <li><a href="#" onclick="showNewTicketForm()">Crear Ticket</a></li>
+            <li><a href="#" onclick="showCompaniesList()">Ver Empresas</a></li>
+            <li><a href="#" onclick="showAdvisorsList()">Ver Asesores</a></li>
+            <li><a href="#" onclick="showClientsList()">Ver Clientes</a></li>
+            <li><a href="#" onclick="logout()">Cerrar Sesión</a></li>
+        </ul>
+    </aside>
 
-        <!-- Register -->
-        <div id="registerForm" class="container hidden">
-            <h2>Registrar Usuario</h2>
-            <input type="text" id="registerName" placeholder="Nombre Completo" required>
-            <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
-            <input type="password" id="registerPassword" placeholder="Contraseña" required>
-            <button class="btn btn-success" onclick="registerUser()">Registrar</button>
-            <p><a href="#" onclick="hideRegisterForm()">Volver al Inicio</a></p>
-        </div>
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="container hidden">
-            <h2>Panel de Control</h2>
-            <button class="btn btn-primary" onclick="showTickets()">Ver Tickets</button>
-            <button class="btn btn-primary" onclick="showNewTicketForm()">Crear Ticket</button>
-            <button class="btn btn-primary" onclick="showCompanies()">Ver Empresas</button>
-            <button class="btn btn-primary" onclick="showAdvisors()">Ver Asesores</button>
-            <button class="btn btn-primary" onclick="showClients()">Ver Clientes</button>
-            <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
-        </div>
-
-        <!-- Tickets -->
-        <div id="ticketsList" class="container hidden">
+    <main id="mainContent" class="hidden">
+        <!-- Tickets List -->
+        <div class="table-container hidden" id="ticketsList">
             <h2>Tickets</h2>
             <table>
                 <thead>
@@ -75,11 +246,11 @@
                     <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
-            <button class="btn btn-primary" onclick="hideTickets()">Volver</button>
+            <button class="btn primary" onclick="hideTicketsList()">Volver</button>
         </div>
 
-        <!-- New Ticket -->
-        <div id="newTicketForm" class="container hidden">
+        <!-- New Ticket Form -->
+        <div class="form-container hidden" id="newTicketForm">
             <h2>Nuevo Ticket</h2>
             <label>Tipo de Ticket:</label>
             <select id="ticketType">
@@ -101,12 +272,12 @@
             <input type="text" id="ticketAdvisor" placeholder="Nombre del asesor" required>
             <label>Empresa:</label>
             <input type="text" id="ticketCompany" placeholder="Nombre de la empresa" required>
-            <button class="btn btn-success" onclick="saveTicket()">Guardar</button>
-            <button class="btn btn-primary" onclick="hideNewTicketForm()">Cancelar</button>
+            <button class="btn success" onclick="saveTicket()">Guardar</button>
+            <button class="btn primary" onclick="hideNewTicketForm()">Cancelar</button>
         </div>
 
-        <!-- Companies -->
-        <div id="companiesList" class="container hidden">
+        <!-- Companies List -->
+        <div class="table-container hidden" id="companiesList">
             <h2>Empresas</h2>
             <table>
                 <thead>
@@ -123,11 +294,11 @@
                     <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
-            <button class="btn btn-primary" onclick="hideCompanies()">Volver</button>
+            <button class="btn primary" onclick="hideCompaniesList()">Volver</button>
         </div>
 
-        <!-- Advisors -->
-        <div id="advisorsList" class="container hidden">
+        <!-- Advisors List -->
+        <div class="table-container hidden" id="advisorsList">
             <h2>Asesores</h2>
             <table>
                 <thead>
@@ -143,11 +314,11 @@
                     <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
-            <button class="btn btn-primary" onclick="hideAdvisors()">Volver</button>
+            <button class="btn primary" onclick="hideAdvisorsList()">Volver</button>
         </div>
 
-        <!-- Clients -->
-        <div id="clientsList" class="container hidden">
+        <!-- Clients List -->
+        <div class="table-container hidden" id="clientsList">
             <h2>Clientes</h2>
             <table>
                 <thead>
@@ -162,9 +333,9 @@
                     <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
-            <button class="btn btn-primary" onclick="hideClients()">Volver</button>
+            <button class="btn primary" onclick="hideClientsList()">Volver</button>
         </div>
-    </div>
+    </main>
 
     <script>
         let isLoggedIn = false;
@@ -176,7 +347,8 @@
                 alert('Inicio de sesión exitoso');
                 isLoggedIn = true;
                 hideLoginForm();
-                showDashboard();
+                showSidebar();
+                showMainContent();
             } else {
                 alert('Por favor, complete los campos.');
             }
@@ -196,7 +368,8 @@
 
         function logout() {
             isLoggedIn = false;
-            hideDashboard();
+            hideSidebar();
+            hideMainContent();
             showLoginForm();
         }
 
@@ -216,23 +389,33 @@
             document.getElementById('registerForm').classList.add('hidden');
         }
 
-        function showDashboard() {
-            document.getElementById('dashboard').classList.remove('hidden');
+        function showSidebar() {
+            document.getElementById('sidebar').classList.remove('hidden');
         }
 
-        function hideDashboard() {
-            document.getElementById('dashboard').classList.add('hidden');
+        function hideSidebar() {
+            document.getElementById('sidebar').classList.add('hidden');
         }
 
-        function showTickets() {
+        function showMainContent() {
+            document.getElementById('mainContent').classList.remove('hidden');
+        }
+
+        function hideMainContent() {
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+
+        function showTicketsList() {
+            hideAllSections();
             document.getElementById('ticketsList').classList.remove('hidden');
         }
 
-        function hideTickets() {
+        function hideTicketsList() {
             document.getElementById('ticketsList').classList.add('hidden');
         }
 
         function showNewTicketForm() {
+            hideAllSections();
             document.getElementById('newTicketForm').classList.remove('hidden');
         }
 
@@ -243,30 +426,41 @@
         function saveTicket() {
             alert('Ticket guardado exitosamente');
             hideNewTicketForm();
+            showTicketsList();
         }
 
-        function showCompanies() {
+        function showCompaniesList() {
+            hideAllSections();
             document.getElementById('companiesList').classList.remove('hidden');
         }
 
-        function hideCompanies() {
+        function hideCompaniesList() {
             document.getElementById('companiesList').classList.add('hidden');
         }
 
-        function showAdvisors() {
+        function showAdvisorsList() {
+            hideAllSections();
             document.getElementById('advisorsList').classList.remove('hidden');
         }
 
-        function hideAdvisors() {
+        function hideAdvisorsList() {
             document.getElementById('advisorsList').classList.add('hidden');
         }
 
-        function showClients() {
+        function showClientsList() {
+            hideAllSections();
             document.getElementById('clientsList').classList.remove('hidden');
         }
 
-        function hideClients() {
+        function hideClientsList() {
             document.getElementById('clientsList').classList.add('hidden');
+        }
+
+        function hideAllSections() {
+            const sections = ['ticketsList', 'newTicketForm', 'companiesList', 'advisorsList', 'clientsList'];
+            sections.forEach(section => {
+                document.getElementById(section).classList.add('hidden');
+            });
         }
     </script>
 </body>
