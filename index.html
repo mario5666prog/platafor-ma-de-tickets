@@ -1,919 +1,107 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  AlertCircle,
-  CheckCircle,
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  X,
-  LogIn,
-  LogOut,
-  UserPlus,
-  Loader2,
-  KeyRound,
-  Mail,
-  Building2,
-  Phone,
-  User
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+// Backend: Node.js con Express y MongoDB
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const app = express();
+const PORT = 5000;
 
-// Interfaces
-interface Ticket {
-  idTicket: string;
-  tipoDeTicket: string;
-  quienReporta: string;
-  fecha: string;
-  estatus: string;
-  asesorQueAtiende: string;
-  empresa: string;
-}
+app.use(express.json());
+app.use(cors());
 
-interface Empresa {
-  nombre: string;
-  direccion: string;
-  telefono: string;
-  correo: string;
-  nombreContacto: string;
-}
+// Conexión a MongoDB
+mongoose.connect('mongodb://localhost:27017/ticket_system', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
-interface Asesor {
-  nombre: string;
-  telefono: string;
-  correo: string;
-  numeroDeTrabajador: string;
-}
+// Modelos
+const TicketSchema = new mongoose.Schema({
+    tipo: String,
+    reportante: String,
+    fecha: { type: Date, default: Date.now },
+    estatus: String,
+    asesor: String,
+    empresa: String
+});
+const Ticket = mongoose.model('Ticket', TicketSchema);
 
-interface Cliente {
-  nombre: string;
-  correo: string;
-  empresa: string;
-}
+const UsuarioSchema = new mongoose.Schema({
+    nombre: String,
+    correo: { type: String, unique: true },
+    password: String
+});
+const Usuario = mongoose.model('Usuario', UsuarioSchema);
 
-interface User {
-  id: string;
-  username: string;
-  password: string;
-  role: 'admin' | 'user';
-}
+// Registro de usuario
+app.post('/register', async (req, res) => {
+    try {
+        const { nombre, correo, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const usuario = new Usuario({ nombre, correo, password: hashedPassword });
+        await usuario.save();
+        res.status(201).json({ message: 'Usuario registrado correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: 'Error al registrar usuario' });
+    }
+});
 
-// Mock Data (para desarrollo sin backend)
-const initialTickets: Ticket[] = [
-  {
-    idTicket: '1',
-    tipoDeTicket: 'Soporte',
-    quienReporta: 'Juan Pérez',
-    fecha: '2024-07-24',
-    estatus: 'Abierto',
-    asesorQueAtiende: 'Ana García',
-    empresa: 'Empresa A',
-  },
-  {
-    idTicket: '2',
-    tipoDeTicket: 'Incidencia',
-    quienReporta: 'María López',
-    fecha: '2024-07-23',
-    estatus: 'En Proceso',
-    asesorQueAtiende: 'Carlos Rodríguez',
-    empresa: 'Empresa B',
-  },
-];
-
-const initialEmpresas: Empresa[] = [
-  {
-    nombre: 'Empresa A',
-    direccion: 'Calle Principal 123',
-    telefono: '555-1234',
-    correo: 'info@empresaA.com',
-    nombreContacto: 'Juan Pérez',
-  },
-  {
-    nombre: 'Empresa B',
-    direccion: 'Avenida Secundaria 456',
-    telefono: '555-5678',
-    correo: 'info@empresaB.com',
-    nombreContacto: 'María López',
-  },
-];
-
-const initialAsesores: Asesor[] = [
-  {
-    nombre: 'Ana García',
-    telefono: '555-9876',
-    correo: 'ana.garcia@soporte.com',
-    numeroDeTrabajador: '1001',
-  },
-  {
-    nombre: 'Carlos Rodríguez',
-    telefono: '555-2345',
-    correo: 'carlos.rodriguez@soporte.com',
-    numeroDeTrabajador: '1002',
-  },
-];
-
-const initialClientes: Cliente[] = [
-  { nombre: 'Juan Pérez', correo: 'juan.perez@example.com', empresa: 'Empresa A' },
-  { nombre: 'María López', correo: 'maria.lopez@example.com', empresa: 'Empresa B' },
-];
-
-const initialUsers: User[] = [
-  { id: '1', username: 'admin', password: 'password', role: 'admin' },
-  { id: '2', username: 'user', password: 'password', role: 'user' },
-];
-
-// Animation Variants
-const modalVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } }
-};
-
-const buttonVariants = {
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 },
-};
-
-// Helper function for simulating API calls (replace with actual API calls)
-const simulateApiCall = (data: any, delay = 500) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(data);
-    }, delay);
-  });
-};
-
-const TicketApp: React.FC = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
-  const [empresas, setEmpresas] = useState<Empresa[]>(initialEmpresas);
-  const [asesores, setAsesores] = useState<Asesor[]>(initialAsesores);
-  const [clientes, setClientes] = useState<Cliente[]>(initialClientes);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-
-  const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
-  const [isEditTicketModalOpen, setIsEditTicketModalOpen] = useState(false);
-  const [editTicket, setEditTicket] = useState<Ticket | null>(null);
-
-  const [newTicket, setNewTicket] = useState<Omit<Ticket, 'idTicket' | 'fecha'>>({
-    tipoDeTicket: '',
-    quienReporta: '',
-    estatus: 'Abierto',
-    asesorQueAtiende: '',
-    empresa: '',
-  });
-
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [loginError, setLoginError] = useState<string | null>(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [newUsername, setNewUsername] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [registrationError, setRegistrationError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-
-  // --- Ticket Management ---
-    const handleCreateTicket = useCallback(async () => {
-        setLoading(true);
-        const idTicket = String(tickets.length + 1);
-        const fecha = new Date().toISOString().split('T')[0];
-        const newTicketWithId: Ticket = { ...newTicket, idTicket, fecha };
-
-        try {
-            // Simular API call
-            const response: any = await simulateApiCall([...tickets, newTicketWithId]);
-            setTickets(response);
-            setIsNewTicketModalOpen(false);
-            setNewTicket({
-                tipoDeTicket: '',
-                quienReporta: '',
-                estatus: 'Abierto',
-                asesorQueAtiende: '',
-                empresa: '',
-            });
-        } catch (error) {
-            console.error("Error creating ticket:", error);
-        } finally {
-            setLoading(false);
+// Login
+app.post('/login', async (req, res) => {
+    try {
+        const { correo, password } = req.body;
+        const usuario = await Usuario.findOne({ correo });
+        if (!usuario || !(await bcrypt.compare(password, usuario.password))) {
+            return res.status(400).json({ error: 'Credenciales inválidas' });
         }
-    }, [newTicket, tickets]);
+        const token = jwt.sign({ id: usuario._id }, 'secreto', { expiresIn: '1h' });
+        res.json({ token });
+    } catch (error) {
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
 
+// Obtener todos los tickets
+app.get('/tickets', async (req, res) => {
+    try {
+        const tickets = await Ticket.find();
+        res.json(tickets);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener tickets' });
+    }
+});
 
-  const handleEditTicket = useCallback(async (ticket: Ticket) => {
-    setEditTicket(ticket);
-    setIsEditTicketModalOpen(true);
-  }, []);
+// Crear un ticket
+app.post('/tickets', async (req, res) => {
+    try {
+        const ticket = new Ticket(req.body);
+        await ticket.save();
+        res.status(201).json({ message: 'Ticket creado correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: 'Error al crear ticket' });
+    }
+});
 
-  const handleUpdateTicket = useCallback(async () => {
-        setLoading(true);
-        if (!editTicket) return;
+// Editar un ticket
+app.put('/tickets/:id', async (req, res) => {
+    try {
+        await Ticket.findByIdAndUpdate(req.params.id, req.body);
+        res.json({ message: 'Ticket actualizado correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: 'Error al actualizar ticket' });
+    }
+});
 
-        try {
-            // Simular API call
-            const updatedTickets = tickets.map((t) => (t.idTicket === editTicket.idTicket ? editTicket : t));
-            const response: any = await simulateApiCall(updatedTickets);
-            setTickets(response);
-            setIsEditTicketModalOpen(false);
-            setEditTicket(null);
-        } catch (error) {
-             console.error("Error updating ticket:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [editTicket, tickets]);
+// Eliminar un ticket
+app.delete('/tickets/:id', async (req, res) => {
+    try {
+        await Ticket.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Ticket eliminado correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: 'Error al eliminar ticket' });
+    }
+});
 
-  const handleDeleteTicket = useCallback(async (idTicket: string) => {
-        setLoading(true);
-        try {
-            // Simular API call
-            const updatedTickets = tickets.filter((t) => t.idTicket !== idTicket);
-            const response: any = await simulateApiCall(updatedTickets);
-            setTickets(response);
-        } catch (error) {
-             console.error("Error deleting ticket:", error);
-        } finally {
-            setLoading(false);
-        }
-  }, [tickets]);
+app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
 
-  // --- Authentication ---
-    const handleLogin = () => {
-        setLoginError(null);
-        const user = users.find(u => u.username === username && u.password === password);
-        if (user) {
-            setCurrentUser(user);
-            setIsLoginModalOpen(false);
-            setUsername('');
-            setPassword('');
-        } else {
-            setLoginError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
-        }
-    };
-
-    const handleLogout = () => {
-        setCurrentUser(null);
-    };
-
-    const handleRegister = () => {
-        setRegistrationError(null);
-        if (users.find(u => u.username === newUsername)) {
-            setRegistrationError('El nombre de usuario ya existe.');
-            return;
-        }
-        const newUser: User = {
-            id: String(users.length + 1),
-            username: newUsername,
-            password: newPassword,
-            role: 'user', // Default role
-        };
-        setUsers([...users, newUser]);
-        setCurrentUser(newUser); // Auto-login after registration
-        setIsRegisterModalOpen(false);
-        setNewUsername('');
-        setNewPassword('');
-    };
-
-  // --- UI ---
-  const renderTicketList = () => {
-    return (
-      <>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-gray-200">Lista de Tickets</h2>
-          <Button
-            onClick={() => setIsNewTicketModalOpen(true)}
-            className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300"
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Ticket
-          </Button>
-        </div>
-
-        <div className="rounded-md border border-gray-800 shadow-lg overflow-hidden">
-          <Table>
-            <TableHeader className="bg-gray-800/50">
-              <TableRow>
-                <TableHead className="text-gray-300">ID</TableHead>
-                <TableHead className="text-gray-300">Tipo</TableHead>
-                <TableHead className="text-gray-300">Reporta</TableHead>
-                <TableHead className="text-gray-300">Fecha</TableHead>
-                <TableHead className="text-gray-300">Estatus</TableHead>
-                <TableHead className="text-gray-300">Asesor</TableHead>
-                <TableHead className="text-gray-300">Empresa</TableHead>
-                <TableHead className="text-gray-300 text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-gray-900/50">
-              <AnimatePresence>
-                {tickets.map((ticket) => (
-                  <motion.tr
-                    key={ticket.idTicket}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <TableCell className="font-medium text-gray-100">{ticket.idTicket}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.tipoDeTicket}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.quienReporta}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.fecha}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.estatus}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.asesorQueAtiende}</TableCell>
-                    <TableCell className="text-gray-300">{ticket.empresa}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        size="icon"
-                        onClick={() => handleEditTicket(ticket)}
-                        className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300"
-                        variants={buttonVariants}
-                        whileHover="hover"
-                        whileTap="tap"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        onClick={() => handleDeleteTicket(ticket.idTicket)}
-                        className="bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300"
-                        variants={buttonVariants}
-                        whileHover="hover"
-                        whileTap="tap"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        </div>
-      </>
-    );
-  };
-
-  const renderNewTicketModal = () => {
-    return (
-      <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
-        <DialogContent
-          className="bg-gray-900 border-gray-700 text-gray-100 sm:max-w-[425px]"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-lg text-gray-100">Nuevo Ticket</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Crea un nuevo ticket para reportar un problema.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tipo" className="text-right text-gray-300">
-                Tipo
-              </Label>
-              <Select
-                onValueChange={(value) => setNewTicket({ ...newTicket, tipoDeTicket: value })}
-                value={newTicket.tipoDeTicket}
-              >
-                <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                  <SelectValue placeholder="Selecciona un tipo" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="Soporte" className="hover:bg-gray-700/50 text-gray-200">Soporte</SelectItem>
-                  <SelectItem value="Incidencia" className="hover:bg-gray-700/50 text-gray-200">Incidencia</SelectItem>
-                  <SelectItem value="Consulta" className="hover:bg-gray-700/50 text-gray-200">Consulta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reporta" className="text-right text-gray-300">
-                Reporta
-              </Label>
-              <Input
-                id="reporta"
-                value={newTicket.quienReporta}
-                onChange={(e) => setNewTicket({ ...newTicket, quienReporta: e.target.value })}
-                className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="estatus" className="text-right text-gray-300">
-                Estatus
-              </Label>
-              <Select
-                onValueChange={(value) => setNewTicket({ ...newTicket, estatus: value })}
-                value={newTicket.estatus}
-              >
-                <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                  <SelectValue placeholder="Selecciona estatus" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="Abierto" className="hover:bg-gray-700/50 text-gray-200">Abierto</SelectItem>
-                  <SelectItem value="En Proceso" className="hover:bg-gray-700/50 text-gray-200">En Proceso</SelectItem>
-                  <SelectItem value="Cerrado" className="hover:bg-gray-700/50 text-gray-200">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="asesor" className="text-right text-gray-300">
-                Asesor
-                </Label>
-                <Select
-                    onValueChange={(value) => setNewTicket({ ...newTicket, asesorQueAtiende: value })}
-                    value={newTicket.asesorQueAtiende}
-                >
-                <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                    <SelectValue placeholder="Selecciona asesor" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                    {asesores.map((asesor) => (
-                    <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre} className="hover:bg-gray-700/50 text-gray-200">
-                        {asesor.nombre}
-                    </SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="empresa" className="text-right text-gray-300">
-                Empresa
-                </Label>
-                <Select
-                onValueChange={(value) => setNewTicket({ ...newTicket, empresa: value })}
-                value={newTicket.empresa}
-                >
-                <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                    <SelectValue placeholder="Selecciona empresa" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                    {empresas.map((empresa) => (
-                    <SelectItem key={empresa.nombre} value={empresa.nombre} className="hover:bg-gray-700/50 text-gray-200">
-                        {empresa.nombre}
-                    </SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-                variant="outline"
-                onClick={() => setIsNewTicketModalOpen(false)}
-                className="bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                disabled={loading}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-            <Button
-                type="submit"
-                onClick={handleCreateTicket}
-                className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                disabled={loading}
-            >
-                {loading ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creando...
-                    </>
-                ) : (
-                    <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Crear
-                    </>
-                )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  const renderEditTicketModal = () => {
-    return (
-      <Dialog open={isEditTicketModalOpen} onOpenChange={setIsEditTicketModalOpen}>
-        <DialogContent
-          className="bg-gray-900 border-gray-700 text-gray-100 sm:max-w-[425px]"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-lg text-gray-100">Editar Ticket</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Edita el ticket seleccionado.
-            </DialogDescription>
-          </DialogHeader>
-          {editTicket && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tipo" className="text-right text-gray-300">
-                  Tipo
-                </Label>
-                <Select
-                  onValueChange={(value) => setEditTicket({ ...editTicket, tipoDeTicket: value })}
-                  value={editTicket.tipoDeTicket}
-                >
-                  <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                    <SelectValue placeholder="Selecciona un tipo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="Soporte" className="hover:bg-gray-700/50 text-gray-200">Soporte</SelectItem>
-                    <SelectItem value="Incidencia" className="hover:bg-gray-700/50 text-gray-200">Incidencia</SelectItem>
-                     <SelectItem value="Consulta" className="hover:bg-gray-700/50 text-gray-200">Consulta</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="reporta" className="text-right text-gray-300">
-                  Reporta
-                </Label>
-                <Input
-                  id="reporta"
-                  value={editTicket.quienReporta}
-                  onChange={(e) => setEditTicket({ ...editTicket, quienReporta: e.target.value })}
-                  className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="estatus" className="text-right text-gray-300">
-                  Estatus
-                </Label>
-                <Select
-                  onValueChange={(value) => setEditTicket({ ...editTicket, estatus: value })}
-                  value={editTicket.estatus}
-                >
-                  <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                    <SelectValue placeholder="Selecciona estatus" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="Abierto" className="hover:bg-gray-700/50 text-gray-200">Abierto</SelectItem>
-                    <SelectItem value="En Proceso" className="hover:bg-gray-700/50 text-gray-200">En Proceso</SelectItem>
-                    <SelectItem value="Cerrado" className="hover:bg-gray-700/50 text-gray-200">Cerrado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="asesor" className="text-right text-gray-300">
-                  Asesor
-                </Label>
-                <Select
-                    onValueChange={(value) => setEditTicket({ ...editTicket, asesorQueAtiende: value })}
-                    value={editTicket.asesorQueAtiende}
-                >
-                <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                    <SelectValue placeholder="Selecciona asesor" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                    {asesores.map((asesor) => (
-                    <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre} className="hover:bg-gray-700/50 text-gray-200">
-                        {asesor.nombre}
-                    </SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-            </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="empresa" className="text-right text-gray-300">
-                  Empresa
-                </Label>
-                 <Select
-                    onValueChange={(value) => setEditTicket({ ...editTicket, empresa: value })}
-                    value={editTicket.empresa}
-                    >
-                    <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-300">
-                        <SelectValue placeholder="Selecciona empresa" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                        {empresas.map((empresa) => (
-                        <SelectItem key={empresa.nombre} value={empresa.nombre} className="hover:bg-gray-700/50 text-gray-200">
-                            {empresa.nombre}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditTicketModalOpen(false);
-                setEditTicket(null);
-              }}
-              className="bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-              disabled={loading}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-            <Button
-                type="submit"
-                onClick={handleUpdateTicket}
-                className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                disabled={loading}
-            >
-                {loading ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Guardando...
-                    </>
-                ) : (
-                    <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Guardar
-                    </>
-                )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-    const renderLoginModal = () => {
-        return (
-            <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-                <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 sm:max-w-[425px]"
-                         variants={modalVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit">
-                    <DialogHeader>
-                        <DialogTitle className="text-lg text-gray-100">Iniciar Sesión</DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                            Inicia sesión para acceder a la plataforma.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="username" className="text-right text-gray-300">
-                                <User className="inline-block mr-1 h-4 w-4" />
-                                Usuario
-                            </Label>
-                            <Input
-                                id="username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="password" className="text-right text-gray-300">
-                                <KeyRound className="inline-block mr-1 h-4 w-4"/>
-                                Contraseña
-                            </Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-                            />
-                        </div>
-                        {loginError && (
-                            <div className="col-span-4 col-start-1 text-red-400 text-sm flex items-center">
-                                <AlertCircle className="mr-1 h-4 w-4" />
-                                {loginError}
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsLoginModalOpen(false)}
-                            className="bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                        >
-                            <X className="mr-2 h-4 w-4" />
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            onClick={handleLogin}
-                            className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Iniciando...
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="mr-2 h-4 w-4" />
-                                    Iniciar Sesión
-                                </>
-                            )}
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                setIsLoginModalOpen(false);
-                                setIsRegisterModalOpen(true);
-                            }}
-                            className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 hover:text-purple-300"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                            disabled={loading}
-                        >
-                            <UserPlus className="mr-2 h-4 w-4"/>
-                            Registrarse
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        );
-    };
-
-      const renderRegisterModal = () => {
-        return (
-            <Dialog open={isRegisterModalOpen} onOpenChange={setIsRegisterModalOpen}>
-                <DialogContent className="bg-gray-900 border-gray-700 text-gray-100 sm:max-w-[425px]"
-                         variants={modalVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit">
-                    <DialogHeader>
-                        <DialogTitle className="text-lg text-gray-100">Registrarse</DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                            Crea una cuenta para acceder a la plataforma.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="newUsername" className="text-right text-gray-300">
-                                <User className="inline-block mr-1 h-4 w-4" />
-                                Usuario
-                            </Label>
-                            <Input
-                                id="newUsername"
-                                value={newUsername}
-                                onChange={(e) => setNewUsername(e.target.value)}
-                                className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="newPassword" className="text-right text-gray-300">
-                                 <KeyRound className="inline-block mr-1 h-4 w-4"/>
-                                Contraseña
-                            </Label>
-                            <Input
-                                id="newPassword"
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="col-span-3 bg-gray-800 border-gray-700 text-gray-300"
-                            />
-                        </div>
-                        {registrationError && (
-                            <div className="col-span-4 col-start-1 text-red-400 text-sm flex items-center">
-                                 <AlertCircle className="mr-1 h-4 w-4" />
-                                {registrationError}
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                         <Button
-                            variant="outline"
-                            onClick={() => setIsRegisterModalOpen(false)}
-                            className="bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                        >
-                            <X className="mr-2 h-4 w-4" />
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            onClick={handleRegister}
-                            className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 hover:text-purple-300"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Registrando...
-                                </>
-                            ) : (
-                                <>
-                                     <UserPlus className="mr-2 h-4 w-4" />
-                                    Registrarse
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        );
-    };
-
-  return (
-    <div className="min-h-screen bg-gray-950 p-4">
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-100">Plataforma de Tickets</h1>
-             {currentUser ? (
-                        <div className="flex items-center gap-4">
-                            <span className="text-gray-300">
-                                <User className="inline-block mr-1 h-4 w-4"/>
-                                {currentUser.username}
-                            </span>
-                            <Button
-                                onClick={handleLogout}
-                                className="bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300"
-                                variants={buttonVariants}
-                                whileHover="hover"
-                                whileTap="tap"
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Cerrar Sesión
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button
-                            onClick={() => setIsLoginModalOpen(true)}
-                            className="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300"
-                            variants={buttonVariants}
-                            whileHover="hover"
-                            whileTap="tap"
-                        >
-                            <LogIn className="mr-2 h-4 w-4" />
-                            Iniciar Sesión
-                        </Button>
-                    )}
-        </div>
-        {currentUser && renderTicketList()}
-        {!currentUser && (
-            <div className="text-center text-gray-400">
-                Por favor, inicie sesión para ver los tickets.
-            </div>
-        )}
-        {renderNewTicketModal()}
-        {renderEditTicketModal()}
-        {renderLoginModal()}
-        {renderRegisterModal()}
-      </div>
-    </div>
-  );
-};
-
-export default TicketApp;
