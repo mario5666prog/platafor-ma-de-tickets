@@ -1,141 +1,1462 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Tickets</title>
-    <style>
-        /* Estilos Generales */
-        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; text-align: center; }
-        .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; }
-        form input, form select { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { display: inline-block; padding: 10px 15px; border-radius: 4px; text-decoration: none; color: white; border: none; cursor: pointer; }
-        .btn-login { background: #4CAF50; } .btn-register { background: #2196F3; } .btn-editar { background: #FFC107; }
-        .btn-borrar { background: #f44336; } .btn-nuevo { background: #009688; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background: #2196F3; color: white; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  AlertCircle,
+  CheckCircle,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  X,
+  LogIn,
+  UserPlus,
+  Users,
+  Briefcase,
+  User,
+  Phone,
+  Mail,
+  IdCard,
+  CalendarDays,
+  Check,
+  Loader2
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-    <!-- Login -->
-    <div id="login" class="container">
-        <h2>Iniciar Sesión</h2>
-        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
-            <input type="text" placeholder="Usuario" required>
-            <input type="password" placeholder="Contraseña" required>
-            <button class="btn btn-login" type="submit">Entrar</button>
-        </form>
-        <p>¿No tienes cuenta? <a href="#" onclick="showSection('register')">Regístrate aquí</a></p>
-    </div>
+// Interfaces
+interface Ticket {
+  idTicket: string;
+  tipoDeTicket: string;
+  quienReporta: string;
+  fecha: string;
+  estatus: string;
+  asesorQueAtiende: string;
+  empresa: string;
+}
 
-    <!-- Registro -->
-    <div id="register" class="container hidden">
-        <h2>Registro de Usuario</h2>
-        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
-            <input type="text" placeholder="Usuario" required>
-            <input type="email" placeholder="Correo" required>
-            <input type="password" placeholder="Contraseña" required>
-            <button class="btn btn-register" type="submit">Registrarse</button>
-        </form>
-        <p>¿Ya tienes cuenta? <a href="#" onclick="showSection('login')">Inicia sesión</a></p>
-    </div>
+interface Empresa {
+  nombre: string;
+  direccion: string;
+  telefono: string;
+  correo: string;
+  nombreDeContacto: string;
+}
 
-    <!-- Listado de Tickets -->
-    <div id="tickets_list" class="container hidden">
-        <h2>Listado de Tickets</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th><th>Tipo</th><th>Reporta</th><th>Fecha</th><th>Estatus</th><th>Asesor</th><th>Empresa</th><th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="ticketTable">
-                <tr>
-                    <td>1</td><td>Incidencia</td><td>Juan Pérez</td><td>2025-03-23</td><td>Pendiente</td><td>Ana López</td><td>Empresa XYZ</td>
-                    <td>
-                        <button class="btn btn-editar" onclick="showSection('ticket_edit')">Editar</button>
-                        <button class="btn btn-borrar" onclick="deleteTicket(this)">Borrar</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <br>
-        <button class="btn btn-nuevo" onclick="showSection('ticket_new')">Nuevo Ticket</button>
-    </div>
+interface Asesor {
+  nombre: string;
+  telefono: string;
+  correo: string;
+  numeroDeTrabajador: string;
+}
 
-    <!-- Nuevo Ticket -->
-    <div id="ticket_new" class="container hidden">
-        <h2>Nuevo Ticket</h2>
-        <form onsubmit="event.preventDefault(); addTicket(); showSection('tickets_list');">
-            <select id="tipo_ticket">
-                <option value="incidencia">Incidencia</option>
-                <option value="solicitud">Solicitud</option>
-                <option value="consulta">Consulta</option>
-            </select>
-            <input type="text" id="quien_reporta" placeholder="Quien Reporta" required>
-            <input type="datetime-local" id="fecha" required>
-            <select id="estatus">
-                <option value="pendiente">Pendiente</option>
-                <option value="en_proceso">En Proceso</option>
-                <option value="cerrado">Cerrado</option>
-            </select>
-            <input type="text" id="asesor" placeholder="Asesor" required>
-            <input type="text" id="empresa" placeholder="Empresa" required>
-            <button class="btn btn-nuevo" type="submit">Guardar</button>
-        </form>
-    </div>
+interface Cliente {
+  nombre: string;
+  correo: string;
+  empresa: string;
+}
 
-    <!-- Editar Ticket -->
-    <div id="ticket_edit" class="container hidden">
-        <h2>Editar Ticket</h2>
-        <form onsubmit="event.preventDefault(); showSection('tickets_list');">
-            <input type="text" value="Juan Pérez" required>
-            <input type="datetime-local" value="2025-03-23T10:30" required>
-            <select>
-                <option value="pendiente" selected>Pendiente</option>
-                <option value="en_proceso">En Proceso</option>
-                <option value="cerrado">Cerrado</option>
-            </select>
-            <input type="text" value="Ana López" required>
-            <input type="text" value="Empresa XYZ" required>
-            <button class="btn btn-editar" type="submit">Actualizar</button>
-            <button class="btn btn-borrar" type="button" onclick="showSection('tickets_list')">Cancelar</button>
-        </form>
-    </div>
+interface Usuario {
+  id: string;
+  nombre: string;
+  correo: string;
+  contrasena: string;
+}
 
-    <script>
-        function showSection(sectionId) {
-            document.querySelectorAll('.container').forEach(div => div.classList.add('hidden'));
-            document.getElementById(sectionId).classList.remove('hidden');
-        }
+// Dummy Data (para desarrollo sin backend)
+const initialTickets: Ticket[] = [
+    { idTicket: '1', tipoDeTicket: 'Soporte', quienReporta: 'Juan Pérez', fecha: '2024-07-24', estatus: 'Abierto', asesorQueAtiende: 'Ana García', empresa: 'ABC Corp' },
+    { idTicket: '2', tipoDeTicket: 'Incidencia', quienReporta: 'María López', fecha: '2024-07-23', estatus: 'En Proceso', asesorQueAtiende: 'Carlos Rodríguez', empresa: 'XYZ Inc' },
+];
 
-        function addTicket() {
-            let tipo = document.getElementById("tipo_ticket").value;
-            let quien = document.getElementById("quien_reporta").value;
-            let fecha = document.getElementById("fecha").value;
-            let estatus = document.getElementById("estatus").value;
-            let asesor = document.getElementById("asesor").value;
-            let empresa = document.getElementById("empresa").value;
+const initialEmpresas: Empresa[] = [
+    { nombre: 'ABC Corp', direccion: 'Calle Principal 123', telefono: '555-1234', correo: 'info@abccorp.com', nombreDeContacto: 'Juan Pérez' },
+    { nombre: 'XYZ Inc', direccion: 'Avenida Secundaria 456', telefono: '555-5678', correo: 'info@xyzinc.com', nombreDeContacto: 'María López' },
+];
 
-            let table = document.getElementById("ticketTable");
-            let row = table.insertRow();
-            row.innerHTML = `<td>${table.rows.length}</td><td>${tipo}</td><td>${quien}</td><td>${fecha}</td><td>${estatus}</td><td>${asesor}</td><td>${empresa}</td>
-                             <td><button class='btn btn-editar' onclick="showSection('ticket_edit')">Editar</button>
-                                 <button class='btn btn-borrar' onclick="deleteTicket(this)">Borrar</button></td>`;
-        }
+const initialAsesores: Asesor[] = [
+    { nombre: 'Ana García', telefono: '555-2468', correo: 'ana.garcia@soporte.com', numeroDeTrabajador: '12345' },
+    { nombre: 'Carlos Rodríguez', telefono: '555-1357', correo: 'carlos.rodriguez@soporte.com', numeroDeTrabajador: '67890' },
+];
 
-        function deleteTicket(btn) {
-            if (confirm("¿Deseas borrar este ticket?")) {
-                let row = btn.parentNode.parentNode;
-                row.parentNode.removeChild(row);
+const initialClientes: Cliente[] = [
+    { nombre: 'Juan Pérez', correo: 'juan.perez@example.com', empresa: 'ABC Corp' },
+    { nombre: 'María López', correo: 'maria.lopez@example.com', empresa: 'XYZ Inc' },
+];
+
+const initialUsuarios: Usuario[] = [
+  { id: '1', nombre: 'Admin', correo: 'admin@example.com', contrasena: 'password' },
+  { id: '2', nombre: 'Usuario', correo: 'user@example.com', contrasena: '12345' },
+];
+
+// Animation Variants
+const listItemVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: 10, transition: { duration: 0.2 } }
+};
+
+const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, type: 'spring', stiffness: 100 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
+};
+
+const buttonVariants = {
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 },
+};
+
+// Helper Functions
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+};
+
+const App: React.FC = () => {
+    // State
+    const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+    const [empresas, setEmpresas] = useState<Empresa[]>(initialEmpresas);
+    const [asesores, setAsesores] = useState<Asesor[]>(initialAsesores);
+    const [clientes, setClientes] = useState<Cliente[]>(initialClientes);
+    const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
+    const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [loginError, setLoginError] = useState<string | null>(null);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [registerError, setRegisterError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    // Estado para gestión de tickets
+    const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+    const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+    const [newTicket, setNewTicket] = useState<Omit<Ticket, 'idTicket'>>({
+        tipoDeTicket: '',
+        quienReporta: '',
+        fecha: '',
+        estatus: 'Abierto',
+        asesorQueAtiende: '',
+        empresa: '',
+    });
+
+    // Estado para gestión de empresas
+    const [isCreatingEmpresa, setIsCreatingEmpresa] = useState(false);
+    const [editingEmpresa, setEditingEmpresa] = useState<Empresa | null>(null);
+    const [newEmpresa, setNewEmpresa] = useState<Empresa>({
+        nombre: '',
+        direccion: '',
+        telefono: '',
+        correo: '',
+        nombreDeContacto: '',
+    });
+
+    // Estado para gestión de asesores
+      const [isCreatingAsesor, setIsCreatingAsesor] = useState(false);
+      const [editingAsesor, setEditingAsesor] = useState<Asesor | null>(null);
+      const [newAsesor, setNewAsesor] = useState<Asesor>({
+          nombre: '',
+          telefono: '',
+          correo: '',
+          numeroDeTrabajador: '',
+      });
+
+    // Estado para gestión de clientes
+    const [isCreatingCliente, setIsCreatingCliente] = useState(false);
+    const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+    const [newCliente, setNewCliente] = useState<Cliente>({
+        nombre: '',
+        correo: '',
+        empresa: '',
+    });
+
+    // Estado para registro de usuarios
+    const [newUsuario, setNewUsuario] = useState<Omit<Usuario, 'id'>>({
+        nombre: '',
+        correo: '',
+        contrasena: '',
+    });
+
+    // Handlers de Autenticación
+    const handleLogin = () => {
+        setLoginError(null);
+        setLoading(true);
+        // Simulación de autenticación con un retraso
+        setTimeout(() => {
+            const usuario = usuarios.find(u => u.correo === newUsuario.correo && u.contrasena === newUsuario.contrasena);
+            if (usuario) {
+                setUsuarioLogueado(usuario);
+                setIsLoginModalOpen(false);
+            } else {
+                setLoginError('Correo o contraseña incorrectos.');
             }
-        }
-    </script>
+            setLoading(false);
+        }, 1000);
+    };
 
-</body>
-</html>
+    const handleLogout = () => {
+        setUsuarioLogueado(null);
+    };
+
+    const handleRegister = () => {
+      setRegisterError(null);
+      setLoading(true);
+      if (newUsuario.contrasena.length < 4) {
+          setRegisterError('La contraseña debe tener al menos 4 caracteres.');
+          setLoading(false);
+          return;
+      }
+
+        // Simulación de registro con un retraso
+        setTimeout(() => {
+            const correoExistente = usuarios.find(u => u.correo === newUsuario.correo);
+            if (correoExistente) {
+                setRegisterError('Ya existe un usuario con este correo.');
+            } else {
+                const nuevoUsuarioConId = { ...newUsuario, id: String(usuarios.length + 1) }; // Simple ID
+                setUsuarios([...usuarios, nuevoUsuarioConId]);
+                setUsuarioLogueado(nuevoUsuarioConId); // Iniciar sesión automáticamente
+                setIsRegisterModalOpen(false);
+            }
+            setLoading(false);
+        }, 1000);
+    };
+
+      // Efecto para cargar datos desde localStorage (simulado)
+    useEffect(() => {
+        const storedUsuarios = localStorage.getItem('usuarios');
+        if (storedUsuarios) {
+            setUsuarios(JSON.parse(storedUsuarios));
+        }
+    }, []);
+
+    // Efecto para guardar usuarios en localStorage (simulado)
+    useEffect(() => {
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    }, [usuarios]);
+
+    // Handlers de Tickets
+    const handleCreateTicket = () => {
+        if (
+            !newTicket.tipoDeTicket ||
+            !newTicket.quienReporta ||
+            !newTicket.fecha ||
+            !newTicket.asesorQueAtiende ||
+            !newTicket.empresa
+        ) {
+            alert('Por favor, complete todos los campos del ticket.'); // Simple validation
+            return;
+        }
+        const nuevoTicketConId: Ticket = {
+            ...newTicket,
+            idTicket: String(tickets.length + 1), // Simple ID generation
+        };
+        setTickets([...tickets, nuevoTicketConId]);
+        setIsCreatingTicket(false);
+        setNewTicket({
+            tipoDeTicket: '',
+            quienReporta: '',
+            fecha: '',
+            estatus: 'Abierto',
+            asesorQueAtiende: '',
+            empresa: '',
+        });
+    };
+
+    const handleEditTicket = (ticket: Ticket) => {
+        setEditingTicket(ticket);
+        setNewTicket(ticket); // Initialize form with current values
+        setIsCreatingTicket(true); // Reuse the form
+    };
+
+    const handleUpdateTicket = () => {
+        if (!editingTicket) return;
+
+        const updatedTicket: Ticket = {
+            ...editingTicket,
+            tipoDeTicket: newTicket.tipoDeTicket,
+            quienReporta: newTicket.quienReporta,
+            fecha: newTicket.fecha,
+            estatus: newTicket.estatus,
+            asesorQueAtiende: newTicket.asesorQueAtiende,
+            empresa: newTicket.empresa
+        };
+
+        setTickets(tickets.map(t => t.idTicket === editingTicket.idTicket ? updatedTicket : t));
+        setEditingTicket(null);
+        setIsCreatingTicket(false); // Close form after update
+        setNewTicket({  // Reset form
+            tipoDeTicket: '',
+            quienReporta: '',
+            fecha: '',
+            estatus: 'Abierto',
+            asesorQueAtiende: '',
+            empresa: '',
+        });
+    };
+
+    const handleDeleteTicket = (idTicket: string) => {
+        setTickets(tickets.filter(t => t.idTicket !== idTicket));
+    };
+
+    // Handlers de Empresas
+    const handleCreateEmpresa = () => {
+        if (
+            !newEmpresa.nombre ||
+            !newEmpresa.direccion ||
+            !newEmpresa.telefono ||
+            !newEmpresa.correo ||
+            !newEmpresa.nombreDeContacto
+        ) {
+            alert('Por favor, complete todos los campos de la empresa.');
+            return;
+        }
+        setEmpresas([...empresas, newEmpresa]);
+        setIsCreatingEmpresa(false);
+        setNewEmpresa({
+            nombre: '',
+            direccion: '',
+            telefono: '',
+            correo: '',
+            nombreDeContacto: '',
+        });
+    };
+
+    const handleEditEmpresa = (empresa: Empresa) => {
+        setEditingEmpresa(empresa);
+        setNewEmpresa(empresa);
+        setIsCreatingEmpresa(true);
+    };
+
+    const handleUpdateEmpresa = () => {
+        if (!editingEmpresa) return;
+        const updatedEmpresa = { ...editingEmpresa, ...newEmpresa };
+        setEmpresas(empresas.map(e => e.nombre === editingEmpresa.nombre ? updatedEmpresa : e));
+        setEditingEmpresa(null);
+        setIsCreatingEmpresa(false);
+        setNewEmpresa({
+            nombre: '',
+            direccion: '',
+            telefono: '',
+            correo: '',
+            nombreDeContacto: '',
+        });
+    };
+
+    const handleDeleteEmpresa = (nombre: string) => {
+        setEmpresas(empresas.filter(e => e.nombre !== nombre));
+    };
+
+    // Handlers de Asesores
+    const handleCreateAsesor = () => {
+      if (!newAsesor.nombre || !newAsesor.telefono || !newAsesor.correo || !newAsesor.numeroDeTrabajador) {
+          alert('Por favor, complete todos los campos del asesor.');
+          return;
+      }
+      setAsesores([...asesores, newAsesor]);
+      setIsCreatingAsesor(false);
+      setNewAsesor({ nombre: '', telefono: '', correo: '', numeroDeTrabajador: '' });
+  };
+
+  const handleEditAsesor = (asesor: Asesor) => {
+      setEditingAsesor(asesor);
+      setNewAsesor(asesor);
+      setIsCreatingAsesor(true);
+  };
+
+  const handleUpdateAsesor = () => {
+      if (!editingAsesor) return;
+      const updatedAsesor = { ...editingAsesor, ...newAsesor };
+      setAsesores(asesores.map(a => a.nombre === editingAsesor.nombre ? updatedAsesor : a));
+      setEditingAsesor(null);
+      setIsCreatingAsesor(false);
+      setNewAsesor({ nombre: '', telefono: '', correo: '', numeroDeTrabajador: '' });
+  };
+
+  const handleDeleteAsesor = (nombre: string) => {
+      setAsesores(asesores.filter(a => a.nombre !== nombre));
+  };
+
+    // Handlers de Clientes
+    const handleCreateCliente = () => {
+      if (!newCliente.nombre || !newCliente.correo || !newCliente.empresa) {
+        alert('Por favor, complete todos los campos del cliente.');
+        return;
+      }
+      setClientes([...clientes, newCliente]);
+      setIsCreatingCliente(false);
+      setNewCliente({ nombre: '', correo: '', empresa: '' });
+    };
+
+    const handleEditCliente = (cliente: Cliente) => {
+      setEditingCliente(cliente);
+      setNewCliente(cliente);
+      setIsCreatingCliente(true);
+    };
+
+    const handleUpdateCliente = () => {
+      if (!editingCliente) return;
+      const updatedCliente = { ...editingCliente, ...newCliente };
+      setClientes(clientes.map(c => c.nombre === editingCliente.nombre ? updatedCliente : c));
+      setEditingCliente(null);
+      setIsCreatingCliente(false);
+      setNewCliente({ nombre: '', correo: '', empresa: '' });
+    };
+
+    const handleDeleteCliente = (nombre: string) => {
+      setClientes(clientes.filter(c => c.nombre !== nombre));
+    };
+
+    // Renderizado Condicional
+    if (!usuarioLogueado) {
+        return (
+            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+                <div className="max-w-md w-full p-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700 space-y-8">
+                    <h1 className="text-3xl font-bold text-center">
+                        <LogIn className="inline-block mr-2 w-8 h-8" />
+                        Iniciar Sesión
+                    </h1>
+
+                    <AnimatePresence>
+                        {loginError && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="bg-red-500/20 text-red-400 p-3 rounded-md border border-red-500/30 flex items-center"
+                            >
+                                <AlertCircle className="mr-2 w-5 h-5" />
+                                {loginError}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <Input
+                        type="email"
+                        placeholder="Correo electrónico"
+                        value={newUsuario.correo}
+                        onChange={(e) => setNewUsuario({ ...newUsuario, correo: e.target.value })}
+                        className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    />
+                    <Input
+                        type="password"
+                        placeholder="Contraseña"
+                        value={newUsuario.contrasena}
+                        onChange={(e) => setNewUsuario({ ...newUsuario, contrasena: e.target.value })}
+                        className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    />
+
+                    <Button
+                        onClick={handleLogin}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Cargando...
+                            </>
+                        ) : (
+                            'Iniciar Sesión'
+                        )}
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsRegisterModalOpen(true)}
+                        className="w-full text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600"
+                    >
+                        <UserPlus className="mr-2 w-4 h-4" />
+                        Registrarse
+                    </Button>
+
+                    {/* Modal de Registro */}
+                    <Dialog open={isRegisterModalOpen} onOpenChange={setIsRegisterModalOpen}>
+                        <DialogContent
+                            className="bg-gray-800 text-white border-gray-700 sm:max-w-[425px]"
+                            as={motion.div}
+                            variants={modalVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                        >
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl">
+                                    <UserPlus className="inline-block mr-2 w-6 h-6" />
+                                    Registro
+                                </DialogTitle>
+                                <DialogDescription className="text-gray-400">
+                                    Crea una cuenta para acceder a la plataforma de tickets.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <AnimatePresence>
+                                {registerError && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="bg-red-500/20 text-red-400 p-3 rounded-md border border-red-500/30 flex items-center mb-4"
+                                    >
+                                        <AlertCircle className="mr-2 w-5 h-5" />
+                                        {registerError}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="nombre" className="text-gray-300">Nombre</Label>
+                                    <Input
+                                        id="nombre"
+                                        type="text"
+                                        placeholder="Tu nombre"
+                                        value={newUsuario.nombre}
+                                        onChange={(e) => setNewUsuario({ ...newUsuario, nombre: e.target.value })}
+                                        className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="correo" className="text-gray-300">Correo electrónico</Label>
+                                    <Input
+                                        id="correo"
+                                        type="email"
+                                        placeholder="correo@ejemplo.com"
+                                        value={newUsuario.correo}
+                                        onChange={(e) => setNewUsuario({ ...newUsuario, correo: e.target.value })}
+                                        className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="contrasena" className="text-gray-300">Contraseña</Label>
+                                    <Input
+                                        id="contrasena"
+                                        type="password"
+                                        placeholder="Contraseña (mínimo 4 caracteres)"
+                                        value={newUsuario.contrasena}
+                                        onChange={(e) => setNewUsuario({ ...newUsuario, contrasena: e.target.value })}
+                                        className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                    />
+                                </div>
+                            </div>
+
+                            <DialogFooter className="mt-6">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsRegisterModalOpen(false)}
+                                    className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 mr-2"
+                                >
+                                    <X className="mr-2 w-4 h-4" />
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onClick={handleRegister}
+                                    className="bg-green-500 hover:bg-green-600 text-white"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Registrando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="mr-2 w-4 h-4" />
+                                            Registrarse
+                                        </>
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </div>
+        );
+    }
+
+    // Renderizado de la Aplicación Principal (Autenticada)
+    return (
+        <div className="min-h-screen bg-gray-900 text-white">
+            {/* Navbar */}
+            <nav className="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
+                <div className="flex items-center">
+                    <Users className="mr-2 w-6 h-6 text-blue-400" />
+                    <h1 className="text-xl font-bold">Plataforma de Tickets</h1>
+                </div>
+                <div className="flex items-center gap-4">
+                    <span className="text-gray-300">
+                        <User className="inline-block mr-1 w-4 h-4" />
+                        {usuarioLogueado.nombre}
+                    </span>
+                    <Button
+                        onClick={handleLogout}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                        <LogOut className="mr-2 w-4 h-4" />
+                        Cerrar Sesión
+                    </Button>
+                </div>
+            </nav>
+
+            {/* Contenido Principal */}
+            <div className="p-6">
+                <h2 className="text-2xl font-semibold mb-6">Tickets</h2>
+
+                {/* Botón para Crear Ticket */}
+                <Button
+                    onClick={() => {
+                        setIsCreatingTicket(true);
+                        setEditingTicket(null); // Clear any previous editing state
+                        setNewTicket({ // Reset form
+                            tipoDeTicket: '',
+                            quienReporta: '',
+                            fecha: '',
+                            estatus: 'Abierto',
+                            asesorQueAtiende: '',
+                            empresa: '',
+                        });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white mb-4"
+                >
+                    <Plus className="mr-2 w-4 h-4" />
+                    Nuevo Ticket
+                </Button>
+
+                {/* Modal para Crear/Editar Ticket */}
+                <Dialog open={isCreatingTicket} onOpenChange={setIsCreatingTicket}>
+                    <DialogContent
+                        className="bg-gray-800 text-white border-gray-700 sm:max-w-[600px]"
+                        as={motion.div}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl">
+                                {editingTicket ? (
+                                    <>
+                                        <Edit className="inline-block mr-2 w-6 h-6" />
+                                        Editar Ticket
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="inline-block mr-2 w-6 h-6" />
+                                        Nuevo Ticket
+                                    </>
+                                )}
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                {editingTicket
+                                    ? 'Modifica los detalles del ticket.'
+                                    : 'Completa el formulario para crear un nuevo ticket.'}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="tipoDeTicket" className="text-gray-300">Tipo de Ticket</Label>
+                                <Select
+                                    onValueChange={(value) => setNewTicket({ ...newTicket, tipoDeTicket: value })}
+                                    value={newTicket.tipoDeTicket}
+                                >
+                                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                                        <SelectValue placeholder="Selecciona un tipo" className="text-gray-400" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        <SelectItem value="Soporte" className="hover:bg-gray-700 text-white">Soporte</SelectItem>
+                                        <SelectItem value="Incidencia" className="hover:bg-gray-700 text-white">Incidencia</SelectItem>
+                                        <SelectItem value="Consulta" className="hover:bg-gray-700 text-white">Consulta</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="quienReporta" className="text-gray-300">Quién Reporta</Label>
+                                <Input
+                                    id="quienReporta"
+                                    type="text"
+                                    placeholder="Nombre de quien reporta"
+                                    value={newTicket.quienReporta}
+                                    onChange={(e) => setNewTicket({ ...newTicket, quienReporta: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="fecha" className="text-gray-300">Fecha</Label>
+                                <Input
+                                    id="fecha"
+                                    type="date"
+                                    value={newTicket.fecha}
+                                    onChange={(e) => setNewTicket({ ...newTicket, fecha: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="estatus" className="text-gray-300">Estatus</Label>
+                                <Select
+                                    onValueChange={(value) => setNewTicket({ ...newTicket, estatus: value })}
+                                    value={newTicket.estatus}
+                                >
+                                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                                        <SelectValue placeholder="Selecciona un estatus" className="text-gray-400"/>
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        <SelectItem value="Abierto" className="hover:bg-gray-700 text-white">Abierto</SelectItem>
+                                        <SelectItem value="En Proceso" className="hover:bg-gray-700 text-white">En Proceso</SelectItem>
+                                        <SelectItem value="Cerrado" className="hover:bg-gray-700 text-white">Cerrado</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="asesorQueAtiende" className="text-gray-300">Asesor que Atiende</Label>
+                                 <Select
+                                    onValueChange={(value) => setNewTicket({ ...newTicket, asesorQueAtiende: value })}
+                                    value={newTicket.asesorQueAtiende}
+                                >
+                                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                                        <SelectValue placeholder="Selecciona un asesor" className="text-gray-400"/>
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        {asesores.map(asesor => (
+                                            <SelectItem key={asesor.nombre} value={asesor.nombre} className="hover:bg-gray-700 text-white">
+                                                {asesor.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                 <Label htmlFor="empresa" className="text-gray-300">Empresa</Label>
+                                  <Select
+                                    onValueChange={(value) => setNewTicket({ ...newTicket, empresa: value })}
+                                    value={newTicket.empresa}
+                                >
+                                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                                         <SelectValue placeholder="Selecciona una empresa" className="text-gray-400" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        {empresas.map(empresa => (
+                                            <SelectItem key={empresa.nombre} value={empresa.nombre} className="hover:bg-gray-700 text-white">
+                                                {empresa.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsCreatingTicket(false);
+                                    setEditingTicket(null); // Also reset editing state on cancel
+                                    setNewTicket({ // Reset form
+                                        tipoDeTicket: '',
+                                        quienReporta: '',
+                                        fecha: '',
+                                        estatus: 'Abierto',
+                                        asesorQueAtiende: '',
+                                        empresa: '',
+                                    });
+                                }}
+                                className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 mr-2"
+                            >
+                                <X className="mr-2 w-4 h-4" />
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={editingTicket ? handleUpdateTicket : handleCreateTicket}
+                                className={editingTicket ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}
+                            >
+                                {editingTicket ? (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        Guardar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="mr-2 w-4 h-4" />
+                                        Crear
+                                    </>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Tabla de Tickets */}
+                <div className="rounded-md border border-gray-700 overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-800/50">
+                            <TableRow>
+                                <TableHead className="text-white">ID Ticket</TableHead>
+                                <TableHead className="text-white">Tipo de Ticket</TableHead>
+                                <TableHead className="text-white">Quién Reporta</TableHead>
+                                <TableHead className="text-white">Fecha</TableHead>
+                                <TableHead className="text-white">Estatus</TableHead>
+                                <TableHead className="text-white">Asesor</TableHead>
+                                <TableHead className="text-white">Empresa</TableHead>
+                                <TableHead className="text-white text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <AnimatePresence>
+                                {tickets.map((ticket) => (
+                                    <motion.tr
+                                        key={ticket.idTicket}
+                                        variants={listItemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                    >
+                                        <TableCell className="font-medium text-gray-200">{ticket.idTicket}</TableCell>
+                                        <TableCell className="text-gray-300">{ticket.tipoDeTicket}</TableCell>
+                                        <TableCell className="text-gray-300">{ticket.quienReporta}</TableCell>
+                                        <TableCell className="text-gray-300">{formatDate(ticket.fecha)}</TableCell>
+                                        <TableCell className="text-gray-300">{ticket.estatus}</TableCell>
+                                        <TableCell className="text-gray-300">{ticket.asesorQueAtiende}</TableCell>
+                                        <TableCell className="text-gray-300">{ticket.empresa}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleEditTicket(ticket)}
+                                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleDeleteTicket(ticket.idTicket)}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </motion.tr>
+                                ))}
+                            </AnimatePresence>
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Sección de Empresas */}
+                <h2 className="text-2xl font-semibold mt-8 mb-6">Empresas</h2>
+
+                <Button
+                    onClick={() => {
+                        setIsCreatingEmpresa(true);
+                        setEditingEmpresa(null);
+                        setNewEmpresa({
+                            nombre: '',
+                            direccion: '',
+                            telefono: '',
+                            correo: '',
+                            nombreDeContacto: '',
+                        });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white mb-4"
+                >
+                    <Plus className="mr-2 w-4 h-4" />
+                    Nueva Empresa
+                </Button>
+
+                {/* Modal para Crear/Editar Empresa */}
+                <Dialog open={isCreatingEmpresa} onOpenChange={setIsCreatingEmpresa}>
+                    <DialogContent
+                        className="bg-gray-800 text-white border-gray-700 sm:max-w-[600px]"
+                        as={motion.div}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl">
+                                {editingEmpresa ? (
+                                    <>
+                                        <Edit className="inline-block mr-2 w-6 h-6" />
+                                        Editar Empresa
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="inline-block mr-2 w-6 h-6" />
+                                        Nueva Empresa
+                                    </>
+                                )}
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                {editingEmpresa
+                                    ? 'Modifica los detalles de la empresa.'
+                                    : 'Completa el formulario para crear una nueva empresa.'}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="nombre" className="text-gray-300">Nombre</Label>
+                                <Input
+                                    id="nombre"
+                                    type="text"
+                                    placeholder="Nombre de la empresa"
+                                    value={newEmpresa.nombre}
+                                    onChange={(e) => setNewEmpresa({ ...newEmpresa, nombre: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="direccion" className="text-gray-300">Dirección</Label>
+                                <Input
+                                    id="direccion"
+                                    type="text"
+                                    placeholder="Dirección de la empresa"
+                                    value={newEmpresa.direccion}
+                                    onChange={(e) => setNewEmpresa({ ...newEmpresa, direccion: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="telefono" className="text-gray-300">Teléfono</Label>
+                                <Input
+                                    id="telefono"
+                                    type="tel"
+                                    placeholder="Teléfono de la empresa"
+                                    value={newEmpresa.telefono}
+                                    onChange={(e) => setNewEmpresa({ ...newEmpresa, telefono: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="correo" className="text-gray-300">Correo</Label>
+                                <Input
+                                    id="correo"
+                                    type="email"
+                                    placeholder="Correo de la empresa"
+                                    value={newEmpresa.correo}
+                                    onChange={(e) => setNewEmpresa({ ...newEmpresa, correo: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="nombreDeContacto" className="text-gray-300">Nombre de Contacto</Label>
+                                <Input
+                                    id="nombreDeContacto"
+                                    type="text"
+                                    placeholder="Nombre del contacto"
+                                    value={newEmpresa.nombreDeContacto}
+                                    onChange={(e) => setNewEmpresa({ ...newEmpresa, nombreDeContacto: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsCreatingEmpresa(false);
+                                    setEditingEmpresa(null);
+                                    setNewEmpresa({
+                                        nombre: '',
+                                        direccion: '',
+                                        telefono: '',
+                                        correo: '',
+                                        nombreDeContacto: '',
+                                    });
+                                }}
+                                className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 mr-2"
+                            >
+                                <X className="mr-2 w-4 h-4" />
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={editingEmpresa ? handleUpdateEmpresa : handleCreateEmpresa}
+                                className={editingEmpresa ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}
+                            >
+                                {editingEmpresa ? (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        Guardar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="mr-2 w-4 h-4" />
+                                        Crear
+                                    </>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Tabla de Empresas */}
+                <div className="rounded-md border border-gray-700 overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-800/50">
+                            <TableRow>
+                                <TableHead className="text-white">Nombre</TableHead>
+                                <TableHead className="text-white">Dirección</TableHead>
+                                <TableHead className="text-white">Teléfono</TableHead>
+                                <TableHead className="text-white">Correo</TableHead>
+                                <TableHead className="text-white">Nombre de Contacto</TableHead>
+                                <TableHead className="text-white text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <AnimatePresence>
+                                {empresas.map((empresa) => (
+                                    <motion.tr
+                                        key={empresa.nombre}
+                                        variants={listItemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                    >
+                                        <TableCell className="font-medium text-gray-200">{empresa.nombre}</TableCell>
+                                        <TableCell className="text-gray-300">{empresa.direccion}</TableCell>
+                                        <TableCell className="text-gray-300">{empresa.telefono}</TableCell>
+                                        <TableCell className="text-gray-300">{empresa.correo}</TableCell>
+                                        <TableCell className="text-gray-300">{empresa.nombreDeContacto}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleEditEmpresa(empresa)}
+                                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleDeleteEmpresa(empresa.nombre)}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </motion.tr>
+                                ))}
+                            </AnimatePresence>
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Sección de Asesores */}
+                <h2 className="text-2xl font-semibold mt-8 mb-6">Asesores</h2>
+
+                <Button
+                    onClick={() => {
+                        setIsCreatingAsesor(true);
+                        setEditingAsesor(null);
+                        setNewAsesor({ nombre: '', telefono: '', correo: '', numeroDeTrabajador: '' });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white mb-4"
+                >
+                    <Plus className="mr-2 w-4 h-4" />
+                    Nuevo Asesor
+                </Button>
+
+                {/* Modal para Crear/Editar Asesor */}
+                <Dialog open={isCreatingAsesor} onOpenChange={setIsCreatingAsesor}>
+                    <DialogContent
+                        className="bg-gray-800 text-white border-gray-700 sm:max-w-[600px]"
+                        as={motion.div}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl">
+                                {editingAsesor ? (
+                                    <>
+                                        <Edit className="inline-block mr-2 w-6 h-6" />
+                                        Editar Asesor
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="inline-block mr-2 w-6 h-6" />
+                                        Nuevo Asesor
+                                    </>
+                                )}
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                {editingAsesor
+                                    ? 'Modifica los detalles del asesor.'
+                                    : 'Completa el formulario para crear un nuevo asesor.'}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="nombre" className="text-gray-300">Nombre</Label>
+                                <Input
+                                    id="nombre"
+                                    type="text"
+                                    placeholder="Nombre del asesor"
+                                    value={newAsesor.nombre}
+                                    onChange={(e) => setNewAsesor({ ...newAsesor, nombre: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="telefono" className="text-gray-300">Teléfono</Label>
+                                <Input
+                                    id="telefono"
+                                    type="tel"
+                                    placeholder="Teléfono del asesor"
+                                    value={newAsesor.telefono}
+                                    onChange={(e) => setNewAsesor({ ...newAsesor, telefono: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="correo" className="text-gray-300">Correo</Label>
+                                <Input
+                                    id="correo"
+                                    type="email"
+                                    placeholder="Correo del asesor"
+                                    value={newAsesor.correo}
+                                    onChange={(e) => setNewAsesor({ ...newAsesor, correo: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="numeroDeTrabajador" className="text-gray-300">Número de Trabajador</Label>
+                                <Input
+                                    id="numeroDeTrabajador"
+                                    type="text"
+                                    placeholder="Número de trabajador"
+                                    value={newAsesor.numeroDeTrabajador}
+                                    onChange={(e) => setNewAsesor({ ...newAsesor, numeroDeTrabajador: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsCreatingAsesor(false);
+                                    setEditingAsesor(null);
+                                    setNewAsesor({ nombre: '', telefono: '', correo: '', numeroDeTrabajador: '' });
+                                }}
+                                className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 mr-2"
+                            >
+                                 <X className="mr-2 w-4 h-4" />
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={editingAsesor ? handleUpdateAsesor : handleCreateAsesor}
+                                className={editingAsesor ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}
+                            >
+                                {editingAsesor ? (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        Guardar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="mr-2 w-4 h-4" />
+                                        Crear
+                                    </>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Tabla de Asesores */}
+                <div className="rounded-md border border-gray-700 overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-800/50">
+                            <TableRow>
+                                <TableHead className="text-white">Nombre</TableHead>
+                                <TableHead className="text-white">Teléfono</TableHead>
+                                <TableHead className="text-white">Correo</TableHead>
+                                 <TableHead className="text-white">Número de Trabajador</TableHead>
+                                <TableHead className="text-white text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <AnimatePresence>
+                                {asesores.map((asesor) => (
+                                    <motion.tr
+                                        key={asesor.nombre}
+                                        variants={listItemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                    >
+                                        <TableCell className="font-medium text-gray-200">{asesor.nombre}</TableCell>
+                                        <TableCell className="text-gray-300">{asesor.telefono}</TableCell>
+                                        <TableCell className="text-gray-300">{asesor.correo}</TableCell>
+                                         <TableCell className="text-gray-300">{asesor.numeroDeTrabajador}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleEditAsesor(asesor)}
+                                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-500/30"
+                                                 as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleDeleteAsesor(asesor.nombre)}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </motion.tr>
+                                ))}
+                            </AnimatePresence>
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Sección de Clientes */}
+                <h2 className="text-2xl font-semibold mt-8 mb-6">Clientes</h2>
+
+                <Button
+                    onClick={() => {
+                        setIsCreatingCliente(true);
+                        setEditingCliente(null);
+                        setNewCliente({ nombre: '', correo: '', empresa: '' });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white mb-4"
+                >
+                    <Plus className="mr-2 w-4 h-4" />
+                    Nuevo Cliente
+                </Button>
+
+                {/* Modal para Crear/Editar Cliente */}
+                <Dialog open={isCreatingCliente} onOpenChange={setIsCreatingCliente}>
+                    <DialogContent
+                        className="bg-gray-800 text-white border-gray-700 sm:max-w-[600px]"
+                        as={motion.div}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl">
+                                {editingCliente ? (
+                                    <>
+                                        <Edit className="inline-block mr-2 w-6 h-6" />
+                                        Editar Cliente
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="inline-block mr-2 w-6 h-6" />
+                                        Nuevo Cliente
+                                    </>
+                                )}
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                {editingCliente
+                                    ? 'Modifica los detalles del cliente.'
+                                    : 'Completa el formulario para crear un nuevo cliente.'}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="nombre" className="text-gray-300">Nombre</Label>
+                                <Input
+                                    id="nombre"
+                                    type="text"
+                                    placeholder="Nombre del cliente"
+                                    value={newCliente.nombre}
+                                    onChange={(e) => setNewCliente({ ...newCliente, nombre: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="correo" className="text-gray-300">Correo</Label>
+                                <Input
+                                    id="correo"
+                                    type="email"
+                                    placeholder="Correo del cliente"
+                                    value={newCliente.correo}
+                                    onChange={(e) => setNewCliente({ ...newCliente, correo: e.target.value })}
+                                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                                />
+                            </div>
+                             <div>
+                                <Label htmlFor="empresa" className="text-gray-300">Empresa</Label>
+                                 <Select
+                                    onValueChange={(value) => setNewCliente({ ...newCliente, empresa: value })}
+                                    value={newCliente.empresa}
+                                >
+                                    <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                                         <SelectValue placeholder="Selecciona una empresa" className="text-gray-400" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                        {empresas.map(empresa => (
+                                            <SelectItem key={empresa.nombre} value={empresa.nombre} className="hover:bg-gray-700 text-white">
+                                                {empresa.nombre}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsCreatingCliente(false);
+                                    setEditingCliente(null);
+                                    setNewCliente({ nombre: '', correo: '', empresa: '' });
+                                }}
+                                className="text-gray-300 hover:text-white hover:bg-gray-700 border-gray-600 mr-2"
+                            >
+                                <X className="mr-2 w-4 h-4" />
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={editingCliente ? handleUpdateCliente : handleCreateCliente}
+                                className={editingCliente ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}
+                            >
+                                {editingCliente ? (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        Guardar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="mr-2 w-4 h-4" />
+                                        Crear
+                                    </>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Tabla de Clientes */}
+                <div className="rounded-md border border-gray-700 overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-800/50">
+                            <TableRow>
+                                <TableHead className="text-white">Nombre</TableHead>
+                                <TableHead className="text-white">Correo</TableHead>
+                                <TableHead className="text-white">Empresa</TableHead>
+                                <TableHead className="text-white text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <AnimatePresence>
+                                {clientes.map((cliente) => (
+                                    <motion.tr
+                                        key={cliente.nombre}
+                                        variants={listItemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                    >
+                                        <TableCell className="font-medium text-gray-200">{cliente.nombre}</TableCell>
+                                        <TableCell className="text-gray-300">{cliente.correo}</TableCell>
+                                        <TableCell className="text-gray-300">{cliente.empresa}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleEditCliente(cliente)}
+                                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => handleDeleteCliente(cliente.nombre)}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-500/30"
+                                                as={motion.button}
+                                                variants={buttonVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </motion.tr>
+                                ))}
+                            </AnimatePresence>
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default App;
+
 
