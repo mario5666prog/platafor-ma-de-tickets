@@ -233,6 +233,7 @@
     <script>
         let tickets = [];
         let editingIndex = null;
+        let usuarioLogueado = false; // Variable para controlar el estado de inicio de sesión
 
         const loginSection = document.getElementById("login-section");
         const loginForm = document.getElementById("login-form");
@@ -276,23 +277,20 @@
         const detalleClienteEmpresaElement = document.getElementById("detalle-cliente-empresa");
 
 
-        loginForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            // Simulación de validación de credenciales (¡Reemplazar con lógica real!)
-            if (email === "usuario@ejemplo.com" && password === "contrasena") {
-                // Ocultar el formulario de inicio de sesión y mostrar la lista de tickets
-                loginSection.classList.add("hidden");
-                registroSection.classList.add("hidden");
-                listaTicketsSection.classList.remove("hidden");
-                cargarTicketsDeLocalStorage();
-                mostrarListaDeTickets(); // Asegúrate de que esta función se llame aquí
-            } else {
-                alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
-            }
+        // Event listener para mostrar el formulario de registro
+        mostrarRegistroBtn.addEventListener("click", (event) => {
+            event.preventDefault(); // Evita que el enlace recargue la página
+            loginSection.classList.add("hidden");
+            registroSection.classList.remove("hidden");
+            listaTicketsSection.classList.add("hidden"); // Oculta la lista de tickets si está visible
         });
 
-        registroForm.addEventListe
+        // Event listener para mostrar el formulario de inicio de sesión
+        mostrarLoginBtn.addEventListener("click", (event) => {
+            event.preventDefault(); // Evita que el enlace recargue la página
+            registroSection.classList.add("hidden");
+            loginSection.classList.remove("hidden");
+            listaTicketsSection.classList.add("hidden"); // Oculta la lista de tickets
+        });
 
+        loginF
