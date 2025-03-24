@@ -51,7 +51,31 @@
             </a>
         </div>
         <div class="mt-6 text-center">
-            <p class="text-gray-600 text-sm">¿No tienes una cuenta? <a href="#" class="text-green-500 hover:text-green-700 font-semibold focus:outline-none focus:shadow-outline">Regístrate</a></p>
+            <p class="text-gray-600 text-sm">¿No tienes una cuenta? <a href="#" id="mostrar-registro" class="text-green-500 hover:text-green-700 font-semibold focus:outline-none focus:shadow-outline">Regístrate</a></p>
+        </div>
+    </section>
+
+    <section id="registro-section" class="bg-white rounded-lg shadow-md p-8 w-full max-w-md mx-auto mb-8 hidden">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Regístrate</h2>
+        <form id="registro-form" class="space-y-4">
+            <div>
+                <label for="nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                <input type="text" id="nombre" placeholder="Ingresa tu nombre" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="email-registro" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                <input type="email" id="email-registro" placeholder="Ingresa tu correo electrónico" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="password-registro" class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                <input type="password" id="password-registro" placeholder="Ingresa tu contraseña" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <button type="submit" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out">
+                Regístrate
+            </button>
+        </form>
+        <div class="mt-6 text-center">
+            <p class="text-gray-600 text-sm">¿Ya tienes una cuenta? <a href="#" id="mostrar-login" class="text-blue-500 hover:text-blue-700 font-semibold focus:outline-none focus:shadow-outline">Inicia Sesión</a></p>
         </div>
     </section>
 
@@ -212,6 +236,10 @@
 
         const loginSection = document.getElementById("login-section");
         const loginForm = document.getElementById("login-form");
+        const registroSection = document.getElementById("registro-section");
+        const registroForm = document.getElementById("registro-form");
+        const mostrarRegistroBtn = document.getElementById("mostrar-registro");
+        const mostrarLoginBtn = document.getElementById("mostrar-login");
         const listaTicketsSection = document.getElementById("listado-tickets");
         const formularioTicketSection = document.getElementById("formulario-ticket");
         const detalleTicketSection = document.getElementById("detalle-ticket");
@@ -257,6 +285,7 @@
             if (email === "usuario@ejemplo.com" && password === "contrasena") {
                 // Ocultar el formulario de inicio de sesión y mostrar la lista de tickets
                 loginSection.classList.add("hidden");
+                registroSection.classList.add("hidden");
                 listaTicketsSection.classList.remove("hidden");
                 cargarTicketsDeLocalStorage();
                 mostrarListaDeTickets(); // Asegúrate de que esta función se llame aquí
@@ -265,223 +294,5 @@
             }
         });
 
-        nuevoTicketBtn.addEventListener("click", () => {
-            formularioTicketSection.classList.remove("hidden");
-            listaTicketsSection.classList.add("hidden");
-            detalleTicketSection.classList.add("hidden");
-            tituloFormulario.textContent = "Nuevo Ticket";
-            ticketForm.reset();
-            editingIndex = null;
-        });
-
-        cancelarBtn.addEventListener("click", () => {
-            formularioTicketSection.classList.add("hidden");
-            listaTicketsSection.classList.remove("hidden");
-            detalleTicketSection.classList.add("hidden");
-        });
-
-        volverListaBtn.addEventListener("click", () => {
-            listaTicketsSection.classList.remove("hidden");
-            detalleTicketSection.classList.add("hidden");
-            formularioTicketSection.classList.add("hidden");
-        });
-
-        ticketForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-
-            const tipoTicket = document.getElementById("tipo-ticket").value;
-            const quienReporta = document.getElementById("quien-reporta").value;
-            const fecha = document.getElementById("fecha").value;
-            const estatus = document.getElementById("estatus").value;
-            const asesor = document.getElementById("asesor").value;
-            const empresa = document.getElementById("empresa").value;
-            const empresaNombre = document.getElementById("empresa-nombre").value;
-            const empresaDireccion = document.getElementById("empresa-direccion").value;
-            const empresaTelefono = document.getElementById("empresa-telefono").value;
-            const empresaCorreo = document.getElementById("empresa-correo").value;
-            const empresaContacto = document.getElementById("empresa-contacto").value;
-            const asesorNombre = document.getElementById("asesor-nombre").value;
-            const asesorTelefono = document.getElementById("asesor-telefono").value;
-            const asesorCorreo = document.getElementById("asesor-correo").value;
-            const asesorNumeroTrabajador = document.getElementById("asesor-numero-trabajador").value;
-            const clienteNombre = document.getElementById("cliente-nombre").value;
-            const clienteCorreo = document.getElementById("cliente-correo").value;
-            const clienteEmpresa = document.getElementById("cliente-empresa").value;
-
-            if (editingIndex !== null) {
-                // Actualizar ticket existente
-                tickets[editingIndex] = {
-                    tipoTicket,
-                    quienReporta,
-                    fecha,
-                    estatus,
-                    asesor,
-                    empresa,
-                    empresaNombre,
-                    empresaDireccion,
-                    empresaTelefono,
-                    empresaCorreo,
-                    empresaContacto,
-                    asesorNombre,
-                    asesorTelefono,
-                    asesorCorreo,
-                    asesorNumeroTrabajador,
-                    clienteNombre,
-                    clienteCorreo,
-                    clienteEmpresa
-                };
-            } else {
-                // Crear nuevo ticket
-                const nuevoTicket = {
-                    tipoTicket,quienReporta,
-                    fecha,
-                    estatus,
-                    asesor,
-                    empresa,
-                    empresaNombre,
-                    empresaDireccion,
-                    empresaTelefono,
-                    empresaCorreo,
-                    empresaContacto,
-                    asesorNombre,
-                    asesorTelefono,
-                    asesorCorreo,
-                    asesorNumeroTrabajador,
-                    clienteNombre,
-                    clienteCorreo,
-                    clienteEmpresa
-                };
-                tickets.push(nuevoTicket);
-            }
-
-            guardarTicketsEnLocalStorage();
-            mostrarListaDeTickets();
-            formularioTicketSection.classList.add("hidden");
-            listaTicketsSection.classList.remove("hidden");
-            detalleTicketSection.classList.add("hidden");
-            ticketForm.reset();
-            editingIndex = null;
-        });
-
-        function mostrarListaDeTickets() {
-            if (tickets.length === 0) {
-                tablaTickets.classList.add("hidden");
-                tablaTicketsBody.innerHTML = '<tr><td colspan="8" class="px-4 py-2 text-center text-gray-500">No hay tickets disponibles</td></tr>';
-            } else {
-                tablaTickets.classList.remove("hidden");
-                tablaTicketsBody.innerHTML = "";
-                tickets.forEach((ticket, index) => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td class="px-4 py-2">${index + 1}</td>
-                        <td class="px-4 py-2">${ticket.tipoTicket}</td>
-                        <td class="px-4 py-2">${ticket.quienReporta}</td>
-                        <td class="px-4 py-2">${ticket.fecha}</td>
-                        <td class="px-4 py-2">${ticket.estatus}</td>
-                        <td class="px-4 py-2">${ticket.asesor}</td>
-                        <td class="px-4 py-2">${ticket.empresa}</td>
-                        <td class="px-4 py-2">
-                            <button class="ver-detalle-btn boton-personalizado boton-personalizado-azul text-xs mr-1" data-index="${index}">Ver Detalle</button>
-                        </td>
-                    `;
-                    tablaTicketsBody.appendChild(row);
-                });
-
-                const verDetalleBtns = document.querySelectorAll(".ver-detalle-btn");
-                verDetalleBtns.forEach(btn => {
-                    btn.addEventListener("click", (event) => {
-                        const index = event.target.dataset.index;
-                        mostrarDetalleDeTicket(index);
-                    });
-                });
-            }
-        }
-
-        function mostrarDetalleDeTicket(index) {
-            const ticket = tickets[index];
-             detalleIdTicketElement.textContent = index + 1;
-            detalleTipoTicketElement.textContent = ticket.tipoTicket;
-            detalleQuienReportaElement.textContent = ticket.quienReporta;
-            detalleFechaElement.textContent = ticket.fecha;
-            detalleEstatusElement.textContent = ticket.estatus;
-            detalleAsesorElement.textContent = ticket.asesor;
-            detalleEmpresaElement.textContent = ticket.empresa;
-            detalleEmpresaNombreElement.textContent = ticket.empresaNombre;
-            detalleEmpresaDireccionElement.textContent = ticket.empresaDireccion;
-            detalleEmpresaTelefonoElement.textContent = ticket.empresaTelefono;
-            detalleEmpresaCorreoElement.textContent = ticket.empresaCorreo;
-            detalleEmpresaContactoElement.textContent = ticket.empresaContacto;
-            detalleAsesorNombreElement.textContent = ticket.asesorNombre;
-            detalleAsesorTelefonoElement.textContent = ticket.asesorTelefono;
-            detalleAsesorCorreoElement.textContent = ticket.asesorCorreo;
-            detalleAsesorNumeroTrabajadorElement.textContent = ticket.asesorNumeroTrabajador;
-            detalleClienteNombreElement.textContent = ticket.clienteNombre;
-            detalleClienteCorreoElement.textContent = ticket.clienteCorreo;
-            detalleClienteEmpresaElement.textContent = ticket.clienteEmpresa;
-
-            detalleTicketSection.classList.remove("hidden");
-            listaTicketsSection.classList.add("hidden");
-            formularioTicketSection.classList.add("hidden");
-
-            editarTicketBtn.dataset.index = index;
-            borrarTicketBtn.dataset.index = index;
-        }
-
-        editarTicketBtn.addEventListener("click", (event) => {
-            const index = event.target.dataset.index;
-            const ticket = tickets[index];
-            editingIndex = index;
-
-            tituloFormulario.textContent = "Editar Ticket";
-            formularioTicketSection.classList.remove("hidden");
-            listaTicketsSection.classList.add("hidden");
-            detalleTicketSection.classList.add("hidden");
-
-            document.getElementById("tipo-ticket").value = ticket.tipoTicket;
-            document.getElementById("quien-reporta").value = ticket.quienReporta;
-            document.getElementById("fecha").value = ticket.fecha;
-            document.getElementById("estatus").value = ticket.estatus;
-            document.getElementById("asesor").value = ticket.asesor;
-            document.getElementById("empresa").value = ticket.empresa;
-            document.getElementById("empresa-nombre").value = ticket.empresaNombre;
-            document.getElementById("empresa-direccion").value = ticket.empresaDireccion;
-            document.getElementById("empresa-telefono").value = ticket.empresaTelefono;
-            document.getElementById("empresa-correo").value = ticket.empresaCorreo;
-            document.getElementById("empresa-contacto").value = ticket.empresaContacto;
-             document.getElementById("asesor-nombre").value = ticket.asesorNombre;
-            document.getElementById("asesor-telefono").value = ticket.asesorTelefono;
-            document.getElementById("asesor-correo").value = ticket.asesorCorreo;
-            document.getElementById("asesor-numero-trabajador").value = ticket.asesorNumeroTrabajador;
-            document.getElementById("cliente-nombre").value = ticket.clienteNombre;
-            document.getElementById("cliente-correo").value = ticket.clienteCorreo;
-            document.getElementById("cliente-empresa").value = ticket.clienteEmpresa;
-        });
-
-        borrarTicketBtn.addEventListener("click", (event) => {
-            const index = event.target.dataset.index;
-            tickets.splice(index, 1);
-            guardarTicketsEnLocalStorage();
-            mostrarListaDeTickets();
-            listaTicketsSection.classList.remove("hidden");
-            detalleTicketSection.classList.add("hidden");
-            formularioTicketSection.classList.add("hidden");
-        });
-
-        function cargarTicketsDeLocalStorage() {
-            const ticketsGuardados = localStorage.getItem("tickets");
-            if (ticketsGuardados) {
-                tickets = JSON.parse(ticketsGuardados);
-            }
-        }
-
-        function guardarTicketsEnLocalStorage() {
-            localStorage.setItem("tickets", JSON.stringify(tickets));
-        }
-
-        cargarTicketsDeLocalStorage();
-        mostrarListaDeTickets();
-    </script>
-</body>
-</html>
-
+        registroForm.addEventListe
 
