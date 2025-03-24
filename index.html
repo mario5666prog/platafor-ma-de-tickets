@@ -77,6 +77,9 @@
             display: flex;
             gap: 10px;
         }
+        #registro {
+            display: none; /* Oculta la sección de registro por defecto */
+        }
     </style>
 </head>
 <body>
@@ -89,7 +92,7 @@
             <input type="password" id="password" name="password" required><br><br>
             <button type="submit" class="custom-button">Iniciar Sesión</button>
         </form>
-        <p>¿No tienes cuenta? <a href="#registro">Regístrate</a></p>
+        <p>¿No tienes cuenta? <a href="#registro" id="mostrarRegistro">Regístrate</a></p>
     </div>
 
     <div class="container" id="registro">
@@ -125,6 +128,12 @@
             // Aquí iría la lógica de registro de usuario (guardar en la base de datos)
             alert(`Usuario "${newUsername}" registrado. Redirigiendo al inicio de sesión...`);
             window.location.href = '#'; // Redirigir al inicio de sesión
+        });
+
+        // Mostrar la sección de registro al hacer clic en el enlace
+        document.getElementById('mostrarRegistro').addEventListener('click', function(e) {
+            e.preventDefault(); // Evita el comportamiento predeterminado del enlace
+            document.getElementById('registro').style.display = 'block'; // Muestra la sección de registro
         });
     </script>
 </body>
