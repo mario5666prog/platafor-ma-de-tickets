@@ -6,348 +6,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Tickets</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 1em;
-            text-align: center;
-        }
-        nav {
-            background-color: #333;
-            overflow: hidden;
-        }
-        nav a {
-            float: left;
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 20px;
-            text-decoration: none;
-        }
-        nav a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        input[type=text], input[type=password], select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 20px;
-            margin: 8px 0;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .error {
-            color: red;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        h1, h2 { text-align: center; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .actions { display: flex; gap: 10px; justify-content: center; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Plataforma de Tickets</h1>
 
-<header>
-    <h1>Plataforma de Tickets</h1>
-</header>
+        <!-- Login -->
+        <div id="loginForm" style="display: block;">
+            <h2>Iniciar Sesión</h2>
+            <form onsubmit="return login(event)">
+                <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="loginPassword" placeholder="Contraseña" required>
+                <button type="submit">Iniciar Sesión</button>
+                <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
+            </form>
+        </div>
 
-<nav>
-    <a href="#login">Login</a>
-    <a href="#register">Registrar Usuario</a>
-    <a href="#tickets">Tickets</a>
-    <a href="#companies">Empresas</a>
-    <a href="#advisors">Asesores</a>
-    <a href="#clients">Clientes</a>
-</nav>
+        <!-- Register -->
+        <div id="registerForm" style="display: none;">
+            <h2>Registro de Usuario</h2>
+            <form onsubmit="return register(event)">
+                <input type="text" id="registerName" placeholder="Nombre Completo" required>
+                <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="registerPassword" placeholder="Contraseña" required>
+                <button type="submit">Registrar</button>
+                <p>Ya tienes cuenta? <a href="#" onclick="showLoginForm()">Inicia sesión aquí</a></p>
+            </form>
+        </div>
 
-<div id="login" class="container">
-    <h2>Login</h2>
-    <form action="/login" method="post">
-        <label for="username">Usuario:</label>
-        <input type="text" id="username" name="username" required>
-        
-        <label for="password">Contraseña:</label>
-        <input type="password" id="password" name="password" required>
-        
-        <button type="submit">Iniciar Sesión</button>
-    </form>
-</div>
+        <!-- Dashboard -->
+        <div id="dashboard" style="display: none;">
+            <h2>Bienvenido!</h2>
+            <button onclick="location.href='#newTicket'">Crear Nuevo Ticket</button>
+            <button onclick="listTickets()">Ver Tickets</button>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </div>
 
-<div id="register" class="container">
-    <h2>Registrar Usuario</h2>
-    <form action="/register" method="post">
-        <label for="reg_username">Nombre de Usuario:</label>
-        <input type="text" id="reg_username" name="reg_username" required>
-        
-        <label for="reg_password">Contraseña:</label>
-        <input type="password" id="reg_password" name="reg_password" required>
-        
-        <label for="reg_email">Correo Electrónico:</label>
-        <input type="text" id="reg_email" name="reg_email" required>
-        
-        <button type="submit">Registrar</button>
-    </form>
-</div>
+        <!-- New Ticket -->
+        <div id="newTicket" style="display: none;">
+            <h2>Nuevo Ticket</h2>
+            <form onsubmit="return createTicket(event)">
+                <select id="ticketType" required>
+                    <option value="">Selecciona Tipo de Ticket</option>
+                    <option value="Técnico">Técnico</option>
+                    <option value="Soporte">Soporte</option>
+                    <option value="Consulta">Consulta</option>
+                </select>
+                <input type="text" id="reporter" placeholder="Quién Reporta" required>
+                <input type="date" id="ticketDate" required>
+                <select id="status" required>
+                    <option value="">Selecciona Estatus</option>
+                    <option value="Abierto">Abierto</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Cerrado">Cerrado</option>
+                </select>
+                <input type="text" id="advisor" placeholder="Asesor que Atiende">
+                <input type="text" id="company" placeholder="Empresa">
+                <textarea id="description" placeholder="Descripción del Problema" required></textarea>
+                <button type="submit">Guardar Ticket</button>
+            </form>
+        </div>
 
-<div id="tickets" class="container">
-    <h2>Tickets</h2>
-    <table>
-        <tr>
-            <th>ID Ticket</th>
-            <th>Tipo de Ticket</th>
-            <th>Quién Reporta</th>
-            <th>Fecha</th>
-            <th>Estatus</th>
-            <th>Asesor que Atiende</th>
-            <th>Empresa</th>
-            <th>Acciones</th>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>Técnico</td>
-            <td>Cliente A</td>
-            <td>2023-10-01</td>
-            <td>Abierto</td>
-            <td>Asesor X</td>
-            <td>Empresa Z</td>
-            <td>
-                <button onclick="editTicket()">Editar</button>
-                <button onclick="deleteTicket()">Borrar</button>
-            </td>
-        </tr>
-    </table>
-    <h3>Nuevo Ticket</h3>
-    <form action="/new_ticket" method="post">
-        <label for="ticket_type">Tipo de Ticket:</label>
-        <select id="ticket_type" name="ticket_type" required>
-            <option value="Tecnico">Técnico</option>
-            <option value="Soporte">Soporte</option>
-        </select>
-        
-        <label for="reporter">Quién Reporta:</label>
-        <input type="text" id="reporter" name="reporter" required>
-        
-        <label for="date">Fecha:</label>
-        <input type="text" id="date" name="date" value="2023-10-01" required>
-        
-        <label for="status">Estatus:</label>
-        <select id="status" name="status" required>
-            <option value="Abierto">Abierto</option>
-            <option value="Cerrado">Cerrado</option>
-        </select>
-        
-        <label for="advisor">Asesor que Atiende:</label>
-        <input type="text" id="advisor" name="advisor" required>
-        
-        <label for="company">Empresa:</label>
-        <input type="text" id="company" name="company" required>
-        
-        <button type="submit">Crear Ticket</button>
-    </form>
-</div>
+        <!-- List Tickets -->
+        <div id="listTickets" style="display: none;">
+            <h2>Listado de Tickets</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Ticket</th>
+                        <th>Tipo de Ticket</th>
+                        <th>Quién Reporta</th>
+                        <th>Fecha</th>
+                        <th>Estatus</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
 
-<div id="companies" class="container">
-    <h2>Empresas</h2>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Dirección</th>
-            <th>Teléfono</th>
-            <th>Correo</th>
-            <th>Nombre de Contacto</th>
-            <th>Acciones</th>
-        </tr>
-        <tr>
-            <td>Empresa Z</td>
-            <td>Calle 123</td>
-            <td>555-1234</td>
-            <td>info@empresa.com</td>
-            <td>Contacto A</td>
-            <td>
-                <button onclick="editCompany()">Editar</button>
-                <button onclick="deleteCompany()">Borrar</button>
-            </td>
-        </tr>
-    </table>
-    <h3>Nueva Empresa</h3>
-    <form action="/new_company" method="post">
-        <label for="company_name">Nombre:</label>
-        <input type="text" id="company_name" name="company_name" required>
-        
-        <label for="address">Dirección:</label>
-        <input type="text" id="address" name="address" required>
-        
-        <label for="phone">Teléfono:</label>
-        <input type="text" id="phone" name="phone" required>
-        
-        <label for="email">Correo:</label>
-        <input type="text" id="email" name="email" required>
-        
-        <label for="contact_name">Nombre de Contacto:</label>
-        <input type="text" id="contact_name" name="contact_name" required>
-        
-        <button type="submit">Crear Empresa</button>
-    </form>
-</div>
+    <script>
+        let users = [];
+        let tickets = [];
+        let currentUser = null;
 
-<div id="advisors" class="container">
-    <h2>Asesores</h2>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Correo</th>
-            <th>Número de Trabajador</th>
-            <th>Acciones</th>
-        </tr>
-        <tr>
-            <td>Asesor X</td>
-            <td>555-5678</td>
-            <td>asesorx@empresa.com</td>
-            <td>12345</td>
-            <td>
-                <button onclick="editAdvisor()">Editar</button>
-                <button onclick="deleteAdvisor()">Borrar</button>
-            </td>
-        </tr>
-    </table>
-    <h3>Nuevo Asesor</h3>
-    <form action="/new_advisor" method="post">
-        <label for="advisor_name">Nombre:</label>
-        <input type="text" id="advisor_name" name="advisor_name" required>
-        
-        <label for="advisor_phone">Teléfono:</label>
-        <input type="text" id="advisor_phone" name="advisor_phone" required>
-        
-        <label for="advisor_email">Correo:</label>
-        <input type="text" id="advisor_email" name="advisor_email" required>
-        
-        <label for="worker_number">Número de Trabajador:</label>
-        <input type="text" id="worker_number" name="worker_number" required>
-        
-        <button type="submit">Crear Asesor</button>
-    </form>
-</div>
-
-<div id="clients" class="container">
-    <h2>Clientes</h2>
-    <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Empresa</th>
-            <th>Acciones</th>
-        </tr>
-        <tr>
-            <td>Cliente A</td>
-            <td>clienteA@empresa.com</td>
-            <td>Empresa Z</td>
-            <td>
-                <button onclick="editClient()">Editar</button>
-                <button onclick="deleteClient()">Borrar</button>
-            </td>
-        </tr>
-    </table>
-    <h3>Nuevo Cliente</h3>
-    <form action="/new_client" method="post">
-        <label for="client_name">Nombre:</label>
-        <input type="text" id="client_name" name="client_name" required>
-        
-        <label for="client_email">Correo:</label>
-        <input type="text" id="client_email" name="client_email" required>
-        
-        <label for="client_company">Empresa:</label>
-        <input type="text" id="client_company" name="client_company" required>
-        
-        <button type="submit">Crear Cliente</button>
-    </form>
-</div>
-
-<script>
-    function editTicket() {
-        alert("Editar Ticket");
-    }
-
-    function deleteTicket() {
-        if (confirm("¿Estás seguro de borrar este ticket?")) {
-            alert("Ticket borrado");
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
         }
-    }
 
-    function editCompany() {
-        alert("Editar Empresa");
-    }
-
-    function deleteCompany() {
-        if (confirm("¿Estás seguro de borrar esta empresa?")) {
-            alert("Empresa borrada");
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
         }
-    }
 
-    function editAdvisor() {
-        alert("Editar Asesor");
-    }
-
-    function deleteAdvisor() {
-        if (confirm("¿Estás seguro de borrar este asesor?")) {
-            alert("Asesor borrado");
+        function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            currentUser = users.find(user => user.email === email && user.password === password);
+            if (currentUser) {
+                alert('Inicio de sesión exitoso');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            } else {
+                alert('Credenciales incorrectas');
+            }
         }
-    }
 
-    function editClient() {
-        alert("Editar Cliente");
-    }
-
-    function deleteClient() {
-        if (confirm("¿Estás seguro de borrar este cliente?")) {
-            alert("Cliente borrado");
+        function register(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            users.push({ name, email, password });
+            alert('Registro exitoso');
+            showLoginForm();
         }
-    }
-</script>
 
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        function createTicket(e) {
+            e.preventDefault();
+            const ticket = {
+                id: tickets.length + 1,
+                type: document.getElementById('ticketType').value,
+                reporter: document.getElementById('reporter').value,
+                date: document.getElementById('ticketDate').value,
+                status: document.getElementById('status').value,
+                advisor: document.getElementById('advisor').value,
+                company: document.getElementById('company').value,
+                description: document.getElementById('description').value
+            };
+            tickets.push(ticket);
+            alert('Ticket creado exitosamente');
+            resetForm('newTicket');
+        }
+
+        function listTickets() {
+            document.getElementById('listTickets').style.display = 'block';
+            const tbody = document.getElementById('ticketsTableBody');
+            tbody.innerHTML = '';
+            tickets.forEach(ticket => {
+                const row = `<tr>
+                    <td>${ticket.id}</td>
+                    <td>${ticket.type}</td>
+                    <td>${ticket.reporter}</td>
+                    <td>${ticket.date}</td>
+                    <td>${ticket.status}</td>
+                    <td>
+                        <button onclick="editTicket(${ticket.id})">Editar</button>
+                        <button onclick="deleteTicket(${ticket.id})">Eliminar</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editTicket(id) {
+            const ticket = tickets.find(t => t.id === id);
+            if (ticket) {
+                document.getElementById('ticketType').value = ticket.type;
+                document.getElementById('reporter').value = ticket.reporter;
+                document.getElementById('ticketDate').value = ticket.date;
+                document.getElementById('status').value = ticket.status;
+                document.getElementById('advisor').value = ticket.advisor;
+                document.getElementById('company').value = ticket.company;
+                document.getElementById('description').value = ticket.description;
+                document.getElementById('newTicket').style.display = 'block';
+            }
+        }
+
+        function deleteTicket(id) {
+            tickets = tickets.filter(t => t.id !== id);
+            listTickets();
+        }
+
+        function resetForm(formId) {
+            document.getElementById(formId).querySelector('form').reset();
+        }
+    </script>
 </body>
 </html>
-
-
+```
