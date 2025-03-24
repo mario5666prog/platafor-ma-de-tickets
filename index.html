@@ -1,399 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plataforma de Soporte Técnico</title>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Tickets</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body {
-        font-family: 'Inter', sans-serif;
-      }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .custom-button:hover {
+            background-color: #0056b3;
+        }
+        .custom-button.delete {
+            background-color: #dc3545;
+        }
+        .custom-button.delete:hover {
+            background-color: #c82333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form label {
+            display: block;
+            margin-top: 10px;
+        }
+        form input, form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        table thead tr {
+            background-color: #f0f0f0;
+        }
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
     </style>
-  </head>
-  <body class="bg-gray-900 text-white p-4 md:p-8">
-    <div class="max-w-6xl mx-auto space-y-8">
-      <div class="text-center">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-          Plataforma de Soporte Técnico
-        </h1>
-        <p class="text-gray-400 mt-2">Reporta y gestiona problemas de sistemas</p>
-      </div>
-
-      <div class="flex justify-end space-x-4" id="auth-buttons">
-        <button id="login-button" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 px-4 py-2 rounded-md">
-          <i data-lucide="log-in" class="mr-2 h-4 w-4 inline-block"></i> Iniciar Sesión
-        </button>
-        <button id="register-button" class="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 px-4 py-2 rounded-md">
-          <i data-lucide="key-round" class="mr-2 h-4 w-4 inline-block"></i> Registrarse
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="info-cards">
-        <div class="bg-white/5 backdrop-blur-md rounded-xl p-4 shadow-lg border border-white/10">
-          <div class="flex items-center gap-4">
-            <i data-lucide="check-circle" class="w-8 h-8 text-blue-400"></i>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Total de Tickets</h3>
-              <p class="text-gray-300" id="total-tickets">0</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white/5 backdrop-blur-md rounded-xl p-4 shadow-lg border border-white/10">
-          <div class="flex items-center gap-4">
-            <i data-lucide="user" class="w-8 h-8 text-blue-400"></i>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Empresas Registradas</h3>
-              <p class="text-gray-300" id="total-empresas">0</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white/5 backdrop-blur-md rounded-xl p-4 shadow-lg border border-white/10">
-          <div class="flex items-center gap-4">
-            <i data-lucide="user" class="w-8 h-8 text-blue-400"></i>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Asesores Disponibles</h3>
-              <p class="text-gray-300" id="total-asesores">0</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="text-center" id="new-ticket-button-container" style="display: none;">
-        <button id="new-ticket-button" class="bg-green-500/20 text-green-400 hover:bg-green-500/30 hover:text-green-300 px-4 py-2 rounded-md">
-          <i data-lucide="plus" class="mr-2 h-4 w-4 inline-block"></i> Nuevo Ticket
-        </button>
-      </div>
-
-      <div class="rounded-md border border-white/10 overflow-hidden" id="ticket-table" style="display: none;">
-        <table class="min-w-full">
-          <thead class="bg-white/5">
-            <tr>
-              <th class="text-white px-6 py-3 text-left">ID Ticket</th>
-              <th class="text-white px-6 py-3 text-left">Tipo de Ticket</th>
-              <th class="text-white px-6 py-3 text-left">Quién Reporta</th>
-              <th class="text-white px-6 py-3 text-left">Fecha</th>
-              <th class="text-white px-6 py-3 text-left">Estatus</th>
-              <th class="text-white px-6 py-3 text-left">Asesor</th>
-              <th class="text-white px-6 py-3 text-left">Empresa</th>
-              <th class="text-white px-6 py-3 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="bg-gray-800" id="ticket-table-body">
-            </tbody>
-        </table>
-      </div>
-
-      <div id="ticket-form-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 hidden">
-        <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-lg border border-white/10 w-full max-w-md">
-          <h2 class="text-lg font-semibold text-white mb-4" id="ticket-form-title">Nuevo Ticket</h2>
-          <p class="text-gray-300 mb-4" id="ticket-form-description">Ingresa los detalles del nuevo ticket.</p>
-          <form id="ticket-form" class="space-y-4">
-            <div>
-              <label for="tipoDeTicket" class="text-gray-200 block mb-2">Tipo de Ticket</label>
-              <input
-                id="tipoDeTicket"
-                name="tipoDeTicket"
-                placeholder="Ej: Soporte Técnico"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              />
-              <p id="tipoDeTicket-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div>
-              <label for="quienReporta" class="text-gray-200 block mb-2">Quién Reporta</label>
-              <input
-                id="quienReporta"
-                name="quienReporta"
-                placeholder="Ej: Juan Pérez"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              />
-              <p id="quienReporta-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div>
-              <label for="fecha" class="text-gray-200 block mb-2">Fecha</label>
-              <input
-                id="fecha"
-                type="date"
-                name="fecha"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              />
-              <p id="fecha-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div>
-              <label for="estatus" class="text-gray-200 block mb-2">Estatus</label>
-              <select
-                id="estatus"
-                name="estatus"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              >
-                <option value="">Selecciona un estatus</option>
-                <option value="Abierto">Abierto</option>
-                <option value="En Proceso">En Proceso</option>
-                <option value="Cerrado">Cerrado</option>
-              </select>
-              <p id="estatus-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div>
-              <label for="asesorQueAtiende" class="text-gray-200 block mb-2">Asesor que Atiende</label>
-              <select
-                id="asesorQueAtiende"
-                name="asesorQueAtiende"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              >
-                <option value="">Selecciona un asesor</option>
-                </select>
-              <p id="asesorQueAtiende-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div>
-              <label for="empresa" class="text-gray-200 block mb-2">Empresa</label>
-              <select
-                id="empresa"
-                name="empresa"
-                class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-              >
-                <option value="">Selecciona una empresa</option>
-                </select>
-              <p id="empresa-error" class="text-red-400 text-sm mt-1"></p>
-            </div>
-            <div class="flex justify-end space-x-2">
-              <button type="button" id="cancel-ticket-button" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md">
-                <i data-lucide="x" class="mr-2 h-4 w-4 inline-block"></i> Cancelar
-              </button>
-              <button type="submit" id="submit-ticket-button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-                <i data-lucide="save" class="mr-2 h-4 w-4 inline-block"></i> <span id="submit-button-text">Crear</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-        <div id="login-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 hidden">
-            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-lg border border-white/10 w-full max-w-md">
-                <h2 class="text-lg font-semibold text-white mb-4">Iniciar Sesión</h2>
-                <p class="text-gray-300 mb-4">Ingresa tus credenciales para acceder a la plataforma.</p>
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                        <label for="login-email" class="text-gray-200 block mb-1">Correo</label>
-                        <input
-                            id="login-email"
-                            type="email"
-                            placeholder="correo@example.com"
-                            class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-                        />
-                         <p id="login-email-error" class="text-red-400 text-sm mt-1"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <label for="login-password" class="text-gray-200 block mb-1">Contraseña</label>
-                        <input
-                            id="login-password"
-                            type="password"
-                            placeholder="Contraseña"
-                            class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-                        />
-                        <p id="login-password-error" class="text-red-400 text-sm mt-1"></p>
-                    </div>
-                    <div id="login-error" class="bg-red-500/10 text-red-400 border border-red-500/20 rounded-md p-4 flex items-start gap-2 hidden">
-                        <i data-lucide="alert-circle" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Error</h3>
-                            <p id="login-error-message"></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end space-x-2">
-                    <button type="button" id="cancel-login-button" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md">Cancelar</button>
-                    <button type="submit" id="login-submit-button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Iniciar Sesión</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="register-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 hidden">
-            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-lg border border-white/10 w-full max-w-md">
-                <h2 class="text-lg font-semibold text-white mb-4">Registrarse</h2>
-                <p class="text-gray-300 mb-4">Crea una cuenta para comenzar a usar la plataforma.</p>
-                <form id="register-form" class="space-y-4">
-                    <div class="space-y-2">
-                        <label for="register-name" class="text-gray-200 block mb-1">Nombre</label>
-                        <input
-                            id="register-name"
-                            type="text"
-                            placeholder="Tu Nombre"
-                            class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-                        />
-                        <p id="register-name-error" class="text-red-400 text-sm mt-1"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <label for="register-email" class="text-gray-200 block mb-1">Correo</label>
-                        <input
-                            id="register-email"
-                            type="email"
-                            placeholder="correo@example.com"
-                            class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-                        />
-                        <p id="register-email-error" class="text-red-400 text-sm mt-1"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <label for="register-password" class="text-gray-200 block mb-1">Contraseña</label>
-                        <input
-                            id="register-password"
-                            type="password"
-                            placeholder="Contraseña"
-                            class="bg-black/20 text-white border-gray-700 rounded-md px-4 py-2 w-full"
-                        />
-                         <p id="register-password-error" class="text-red-400 text-sm mt-1"></p>
-                    </div>
-                    <div id="register-error" class="bg-red-500/10 text-red-400 border border-red-500/20 rounded-md p-4 flex items-start gap-2 hidden">
-                        <i data-lucide="alert-circle" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Error</h3>
-                            <p id="register-error-message"></p>
-                        </div>
-                    </div>
-                     <div id="register-success" class="bg-green-500/10 text-green-400 border border-green-500/20 rounded-md p-4 flex items-start gap-2 hidden">
-                        <i data-lucide="check-circle" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Registro Exitoso</h3>
-                            <p>¡Tu cuenta ha sido creada! Ahora puedes iniciar sesión.</p>
-                        </div>
-                    </div>
-                </form>
-                <div class="mt-6 flex justify-end space-x-2">
-                    <button type="button" id="cancel-register-button" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md">Cancelar</button>
-                    <button type="submit" id="register-submit-button" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">Registrarse</button>
-                </div>
-            </div>
-        </div>
-
-      <script>
-        let tickets = [];
-        let usuarios = [];
-        let usuarioLogueado = null;
-        const empresas = [
-            { nombre: 'Empresa A', direccion: 'Dirección A', telefono: '1234567890', correo: 'empresaA@example.com', nombreDeContacto: 'Contacto A' },
-            { nombre: 'Empresa B', direccion: 'Dirección B', telefono: '9876543210', correo: 'empresaB@example.com', nombreDeContacto: 'Contacto B' },
-        ];
-        const asesores = [
-            { nombre: 'Asesor 1', telefono: '5551234567', correo: 'asesor1@example.com', numeroDeTrabajador: '1001' },
-            { nombre: 'Asesor 2', telefono: '5559876543', correo: 'asesor2@example.com', numeroDeTrabajador: '1002' },
-        ];
-
-        // Elementos del DOM
-        const authButtonsContainer = document.getElementById('auth-buttons');
-        const loginButton = document.getElementById('login-button');
-        const registerButton = document.getElementById('register-button');
-        const newTicketButtonContainer = document.getElementById('new-ticket-button-container');
-        const newTicketButton = document.getElementById('new-ticket-button');
-        const ticketTable = document.getElementById('ticket-table');
-        const ticketTableBody = document.getElementById('ticket-table-body');
-        const ticketFormDialog = document.getElementById('ticket-form-dialog');
-        const ticketForm = document.getElementById('ticket-form');
-        const ticketFormTitle = document.getElementById('ticket-form-title');
-        const ticketFormDescription = document.getElementById('ticket-form-description');
-        const submitTicketButton = document.getElementById('submit-ticket-button');
-        const submitButtonText = document.getElementById('submit-button-text');
-        const cancelTicketButton = document.getElementById('cancel-ticket-button');
-        const loginDialog = document.getElementById('login-dialog');
-        const loginForm = document.getElementById('login-form');
-        const loginSubmitButton = document.getElementById('login-submit-button');
-        const cancelLoginButton = document.getElementById('cancel-login-button');
-        const registerDialog = document.getElementById('register-dialog');
-        const registerForm = document.getElementById('register-form');
-        const registerSubmitButton = document.getElementById('register-submit-button');
-        const cancelRegisterButton = document.getElementById('cancel-register-button');
-        const totalTicketsElement = document.getElementById('total-tickets');
-        const totalEmpresasElement = document.getElementById('total-empresas');
-        const totalAsesoresElement = document.getElementById('total-asesores');
-        const loginErrorElement = document.getElementById('login-error');
-        const loginErrorMessageElement = document.getElementById('login-error-message');
-        const registerErrorElement = document.getElementById('register-error');
-        const registerErrorMessageElement = document.getElementById('register-error-message');
-        const registerSuccessElement = document.getElementById('register-success');
-
-        // Iconos de Lucide
-        lucide.createIcons();
-
-        // Funciones para mostrar/ocultar elementos
-        function showElement(element) {
-            element.style.display = 'flex';
-        }
-
-        function hideElement(element) {
-            element.style.display = 'none';
-        }
-
-        // Funciones para manejar tickets
-        function renderTickets() {
-            if (tickets.length === 0) {
-                ticketTable.style.display = 'none';
+</head>
+<body>
+    <div class="container">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required><br><br>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required><br><br>
+            <button type="submit" class="custom-button">Iniciar Sesión</button>
+        </form>
+        <p>¿No tienes cuenta? <a href="register.html">Regístrate</a></p>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = this.username.value;
+            const password = this.password.value;
+            // Aquí iría la lógica de validación del inicio de sesión
+            if (username === 'admin' && password === 'password') {
+                alert('Inicio de sesión exitoso. Redirigiendo a la lista de tickets...');
+                window.location.href = 'tickets/list.html'; // Redirigir a la lista de tickets
             } else {
-                ticketTable.style.display = 'table';
-                ticketTableBody.innerHTML = '';
-                tickets.forEach(ticket => {
-                    const row = document.createElement('tr');
-                    row.classList.add('hover:bg-white/5', 'transition-colors');
-                    row.innerHTML = `
-                        <td class="px-6 py-3 text-gray-200">${ticket.idTicket}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.tipoDeTicket}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.quienReporta}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.fecha}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.estatus}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.asesorQueAtiende}</td>
-                        <td class="px-6 py-3 text-gray-300">${ticket.empresa}</td>
-                        <td class="px-6 py-3 text-right space-x-2">
-                            <button class="edit-button bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 px-2 py-1 rounded-md" data-id="${ticket.idTicket}">
-                                <i data-lucide="edit-2" class="h-4 w-4"></i>
-                            </button>
-                            <button class="delete-button bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 px-2 py-1 rounded-md" data-id="${ticket.idTicket}">
-                                <i data-lucide="trash-2" class="h-4 w-4"></i>
-                            </button>
-                        </td>
-                    `;
-                    ticketTableBody.appendChild(row);
-                });
-
-                // Eventos para los botones de editar y eliminar
-                document.querySelectorAll('.edit-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = button.dataset.id;
-                        const ticketToEdit = tickets.find(t => t.idTicket === id);
-                        if (ticketToEdit) {
-                            editingTicketId = id;
-                            populateTicketForm(ticketToEdit);
-                            ticketFormTitle.textContent = 'Editar Ticket';
-                            ticketFormDescription.textContent = 'Modifica los detalles del ticket.';
-                            submitButtonText.textContent = 'Guardar';
-                            showElement(ticketFormDialog);
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.delete-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = button.dataset.id;
-                        deleteTicket(id);
-                    });
-                });
+                alert('Credenciales incorrectas. Por favor, inténtalo de nuevo.');
             }
-             totalTicketsElement.textContent = tickets.length;
-        }
+        });
+    </script>
+</body>
+</html>
 
-        function addTicket(newTicket) {
-            if (editingTicketId) {
-                // Actualizar ticket existente
-                tickets = tickets.map(t => t.idTicket === editingTicketId ? newTicket : t);
-                editingTicketId = null;
-            } else {
-                // Agregar nuevo ticket
-                const id = `TICKET-${Date.now()}`; // Generar ID único
-                tickets.push({ ...newTicket, idTicket: id });
-            }
-            saveTicketsToLocalStorage();
-            renderTickets();
-            hideElement(ticketFormDialog);
-            ticketForm.reset();
-            submitButtonText.textContent = 'Crear'; // Restablecer el texto del botón
-        }
-
-        function deleteTicket(id) {
-            tickets = tickets.fil
