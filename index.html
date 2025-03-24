@@ -1,209 +1,610 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Tickets</title>
+    <title>Sistema de Tickets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
-        h1, h2 { text-align: center; }
-        form { display: flex; flex-direction: column; gap: 10px; }
-        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 15px; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .actions { display: flex; gap: 10px; justify-content: center; }
+        /* Estilos personalizados para los botones */
+        .boton-personalizado {
+            @apply px-4 py-2 rounded-md font-semibold transition-all duration-200;
+        }
+        .boton-default {
+            @apply bg-blue-500 text-white hover:bg-blue-600;
+        }
+        .boton-outline {
+            @apply border border-blue-500 text-blue-500 hover:bg-blue-50 hover:text-blue-600;
+        }
+        .boton-destructive {
+            @apply bg-red-500 text-white hover:bg-red-600;
+        }
+        .boton-ghost {
+            @apply text-blue-500 hover:bg-blue-50 hover:text-blue-600;
+        }
+        .boton-icon {
+            @apply p-2 rounded-full;
+        }
+        .boton-icon-outline {
+            @apply border border-blue-500 text-blue-500 hover:bg-blue-50 hover:text-blue-600;
+        }
+        .boton-icon-destructive {
+             @apply bg-red-500 text-white hover:bg-red-600;
+        }
+
+        /* Estilos para la alerta de mensaje */
+        .alerta-mensaje {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            width: 100%;
+            max-width: 56rem;
+        }
+
+        /* Estilos para la tabla */
+        .tabla-estilizada {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Para que el borde redondeado se aplique a la tabla */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabla-estilizada thead tr {
+            background-color: #f3f4f6; /* Color de fondo del encabezado */
+            color: #6b7280; /* Color del texto del encabezado */
+            text-align: left;
+        }
+
+        .tabla-estilizada th, .tabla-estilizada td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb; /* Borde inferior de las celdas */
+        }
+
+        .tabla-estilizada tbody tr:hover {
+            background-color: #f9fafb; /* Color de fondo de las filas al pasar el mouse */
+        }
+
+        .tabla-estilizada th {
+            font-weight: 600; /* Peso de la fuente del encabezado */
+        }
+
+        /* Estilos para el formulario */
+        .formulario-estilizado {
+            @apply space-y-4;
+        }
+
+        .formulario-estilizado label {
+            @apply block text-sm font-medium text-gray-700;
+        }
+
+        .formulario-estilizado input, .formulario-estilizado select, .formulario-estilizado textarea {
+            @apply mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+        }
+
+        .formulario-estilizado textarea {
+            resize: vertical;
+            min-height: 4rem;
+        }
+
+        .formulario-estilizado .error-message {
+            @apply text-red-500 text-sm mt-1;
+        }
+
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-contenido {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 64rem;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            @apply text-xl font-semibold text-gray-900;
+            margin: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .modal-cerrar {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition-opacity: 0.2s ease;
+        }
+
+        .modal-cerrar:hover {
+            opacity: 0.75;
+        }
+
+        /* Estilos para la página de inicio */
+        .home-page {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .home-page h1 {
+            @apply text-3xl font-bold text-gray-800 mb-4;
+        }
+
+        .home-page p {
+            @apply text-lg text-gray-600 mb-8;
+        }
+
+        .home-page .bienvenida {
+            @apply bg-white p-6 rounded-lg shadow-md text-left;
+        }
+
+        .home-page .bienvenida h2 {
+            @apply text-2xl font-semibold text-blue-600 mb-4;
+        }
+
+        .home-page .bienvenida p {
+            @apply text-gray-700;
+        }
+
+        .home-page .que-puedes-hacer {
+            @apply bg-white p-6 rounded-lg shadow-md text-left;
+        }
+
+        .home-page .que-puedes-hacer h2 {
+            @apply text-2xl font-semibold text-green-600 mb-4;
+        }
+
+        .home-page .que-puedes-hacer ul {
+            @apply list-disc list-inside space-y-2 text-gray-700;
+        }
+
+        .home-page .que-puedes-hacer ul li span {
+            font-weight: 600;
+        }
+
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Plataforma de Tickets</h1>
+<body class="bg-gray-100 font-sans antialiased">
+    <div id="root">
+        <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="text-xl font-bold text-gray-800">Sistema de Tickets</span>
+                <button id="boton-inicio" class="boton-personalizado boton-ghost">Inicio</button>
+                <div id="menu-usuario" class="hidden">
+                    <button id="boton-tickets" class="boton-personalizado boton-ghost">Tickets</button>
+                    <button id="boton-empresas" class="boton-personalizado boton-ghost">Empresas</button>
+                    <button id="boton-asesores" class="boton-personalizado boton-ghost">Asesores</button>
+                    <button id="boton-clientes" class="boton-personalizado boton-ghost">Clientes</button>
+                </div>
+            </div>
+            <div id="menu-autenticacion">
+                <button id="boton-login" class="boton-personalizado boton-outline">
+                    <i data-lucide="log-in"></i>
+                    Iniciar Sesión
+                </button>
+                <button id="boton-register" class="boton-personalizado boton-default">
+                    <i data-lucide="user-plus"></i>
+                    Registrarse
+                </button>
+                <button id="boton-logout" class="boton-personalizado boton-outline hidden">
+                    <i data-lucide="log-out"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </nav>
 
-        <!-- Login -->
-        <div id="loginForm" style="display: block;">
-            <h2>Iniciar Sesión</h2>
-            <form onsubmit="return login(event)">
-                <input type="email" id="loginEmail" placeholder="Correo Electrónico" required>
-                <input type="password" id="loginPassword" placeholder="Contraseña" required>
-                <button type="submit">Iniciar Sesión</button>
-                <p>No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
-            </form>
-        </div>
-
-        <!-- Register -->
-        <div id="registerForm" style="display: none;">
-            <h2>Registro de Usuario</h2>
-            <form onsubmit="return register(event)">
-                <input type="text" id="registerName" placeholder="Nombre Completo" required>
-                <input type="email" id="registerEmail" placeholder="Correo Electrónico" required>
-                <input type="password" id="registerPassword" placeholder="Contraseña" required>
-                <button type="submit">Registrar</button>
-                <p>Ya tienes cuenta? <a href="#" onclick="showLoginForm()">Inicia sesión aquí</a></p>
-            </form>
-        </div>
-
-        <!-- Dashboard -->
-        <div id="dashboard" style="display: none;">
-            <h2>Bienvenido!</h2>
-            <button onclick="location.href='#newTicket'">Crear Nuevo Ticket</button>
-            <button onclick="listTickets()">Ver Tickets</button>
-            <button onclick="logout()">Cerrar Sesión</button>
-        </div>
-
-        <!-- New Ticket -->
-        <div id="newTicket" style="display: none;">
-            <h2>Nuevo Ticket</h2>
-            <form onsubmit="return createTicket(event)">
-                <select id="ticketType" required>
-                    <option value="">Selecciona Tipo de Ticket</option>
-                    <option value="Técnico">Técnico</option>
-                    <option value="Soporte">Soporte</option>
-                    <option value="Consulta">Consulta</option>
-                </select>
-                <input type="text" id="reporter" placeholder="Quién Reporta" required>
-                <input type="date" id="ticketDate" required>
-                <select id="status" required>
-                    <option value="">Selecciona Estatus</option>
-                    <option value="Abierto">Abierto</option>
-                    <option value="En Proceso">En Proceso</option>
-                    <option value="Cerrado">Cerrado</option>
-                </select>
-                <input type="text" id="advisor" placeholder="Asesor que Atiende">
-                <input type="text" id="company" placeholder="Empresa">
-                <textarea id="description" placeholder="Descripción del Problema" required></textarea>
-                <button type="submit">Guardar Ticket</button>
-            </form>
-        </div>
-
-        <!-- List Tickets -->
-        <div id="listTickets" style="display: none;">
-            <h2>Listado de Tickets</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Ticket</th>
-                        <th>Tipo de Ticket</th>
-                        <th>Quién Reporta</th>
-                        <th>Fecha</th>
-                        <th>Estatus</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketsTableBody"></tbody>
-            </table>
-        </div>
+        <main class="container mx-auto" id="contenido-principal">
+            <div id="login-form" class="w-full max-w-md mx-auto mt-16 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold mb-4">Inicio de Sesión</h2>
+                <form id="formulario-login" class="space-y-4">
+                    <div>
+                        <label for="correo" class="block text-sm font-medium text-gray-700">Correo</label>
+                        <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <div id="correo-error" class="error-message"></div>
+                    </div>
+                    <div>
+                        <label for="contrasena" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                        <input type="password" id="contrasena" name="contrasena" placeholder="Contraseña" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                         <div id="contrasena-error" class="error-message"></div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white rounded-md py-2 px-4 font-semibold hover:bg-blue-600 transition-colors duration-200">
+                        Iniciar Sesión
+                    </button>
+                </form>
+                <div class="mt-4 text-sm text-gray-500 text-center">
+                    ¿No tienes una cuenta? <a href="#" id="link-registro" class="text-blue-500 hover:underline">Regístrate</a>
+                </div>
+            </div>
+        </main>
     </div>
 
+    <script src="https://unpkg.com/lucide-react@latest/umd/lucide-react.min.js"></script>
     <script>
-        let users = [];
-        let tickets = [];
-        let currentUser = null;
+    // ===============================
+    // Interfaz de Datos
+    // ===============================
 
-        function showLoginForm() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-        }
+    /**
+     * @typedef {object} Ticket
+     * @property {string} idTicket
+     * @property {string} tipoDeTicket
+     * @property {string} quienReporta
+     * @property {string} fecha
+     * @property {string} estatus
+     * @property {string} asesorQueAtiende
+     * @property {string} empresa
+     * @property {string} [descripcion]
+     */
 
-        function showRegisterForm() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-        }
+    /**
+     * @typedef {object} Empresa
+     * @property {string} nombre
+     * @property {string} direccion
+     * @property {string} telefono
+     * @property {string} correo
+     * @property {string} nombreDeContacto
+     * @property {string} id
+     */
 
-        function login(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            currentUser = users.find(user => user.email === email && user.password === password);
-            if (currentUser) {
-                alert('Inicio de sesión exitoso');
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('registerForm').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
+    /**
+     * @typedef {object} Asesor
+     * @property {string} nombre
+     * @property {string} telefono
+     * @property {string} correo
+     * @property {string} numeroDeTrabajador
+     * @property {string} id
+     */
+
+    /**
+     * @typedef {object} Cliente
+     * @property {string} nombre
+     * @property {string} correo
+     * @property {string} empresa
+     * @property {string} id
+     */
+
+    /**
+     * @typedef {object} Usuario
+     * @property {string} id
+     * @property {string} nombre
+     * @property {string} correo
+     * @property {string} contrasena
+     * @property {'admin' | 'cliente'} rol
+     */
+
+    /**
+     * @typedef {object} Mensaje
+     * @property {'success' | 'error' | 'info'} tipo
+     * @property {string} texto
+     */
+
+    // ===============================
+    // Estados Globales (Simulados)
+    // ===============================
+
+    const useGlobalState = () => {
+        /** @type {Ticket[]} */
+        const [tickets, setTickets] = useState(() => {
+            const storedTickets = localStorage.getItem('tickets');
+            return storedTickets ? JSON.parse(storedTickets) : [];
+        });
+        /** @type {Empresa[]} */
+        const [empresas, setEmpresas] = useState(() => {
+            const storedEmpresas = localStorage.getItem('empresas');
+            return storedEmpresas ? JSON.parse(storedEmpresas) : [];
+        });
+        /** @type {Asesor[]} */
+        const [asesores, setAsesores] = useState(() => {
+            const storedAsesores = localStorage.getItem('asesores');
+            return storedAsesores ? JSON.parse(storedAsesores) : [];
+        });
+        /** @type {Cliente[]} */
+        const [clientes, setClientes] = useState(() => {
+            const storedClientes = localStorage.getItem('clientes');
+            return storedClientes ? JSON.parse(storedClientes) : [];
+        });
+        /** @type {Usuario[]} */
+        const [usuarios, setUsuarios] = useState(() => {
+            const storedUsuarios = localStorage.getItem('usuarios');
+            return storedUsuarios ? JSON.parse(storedUsuarios) : [];
+        });
+        /** @type {Usuario | null} */
+        const [usuarioLogueado, setUsuarioLogueado] = useState(() => {
+            const storedUsuarioLogueado = localStorage.getItem('usuarioLogueado');
+            return storedUsuarioLogueado ? JSON.parse(storedUsuarioLogueado) : null;
+        });
+        /** @type {Mensaje | null} */
+        const [mensaje, setMensaje] = useState(null);
+
+        // Persistencia simulada con localStorage
+        useEffect(() => {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            localStorage.setItem('empresas', JSON.stringify(empresas));
+            localStorage.setItem('asesores', JSON.stringify(asesores));
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+            localStorage.setItem('usuarios', JSON.stringify(usuarios));
+            if (usuarioLogueado) {
+                localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
             } else {
-                alert('Credenciales incorrectas');
+                localStorage.removeItem('usuarioLogueado');
             }
-        }
+        }, [tickets, empresas, asesores, clientes, usuarios, usuarioLogueado]);
 
-        function register(e) {
-            e.preventDefault();
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            users.push({ name, email, password });
-            alert('Registro exitoso');
-            showLoginForm();
-        }
+        /**
+         * Función para mostrar mensajes en la interfaz de usuario.
+         * @param {'success' | 'error' | 'info'} tipo
+         * @param {string} texto
+         * @param {number} [duracion]
+         */
+        const mostrarMensaje = useCallback((tipo, texto, duracion = 3000) => {
+            setMensaje({ tipo, texto });
+            setTimeout(() => setMensaje(null), duracion);
+        }, []);
 
-        function logout() {
-            currentUser = null;
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-        }
-
-        function createTicket(e) {
-            e.preventDefault();
-            const ticket = {
-                id: tickets.length + 1,
-                type: document.getElementById('ticketType').value,
-                reporter: document.getElementById('reporter').value,
-                date: document.getElementById('ticketDate').value,
-                status: document.getElementById('status').value,
-                advisor: document.getElementById('advisor').value,
-                company: document.getElementById('company').value,
-                description: document.getElementById('description').value
-            };
-            tickets.push(ticket);
-            alert('Ticket creado exitosamente');
-            resetForm('newTicket');
-        }
-
-        function listTickets() {
-            document.getElementById('listTickets').style.display = 'block';
-            const tbody = document.getElementById('ticketsTableBody');
-            tbody.innerHTML = '';
-            tickets.forEach(ticket => {
-                const row = `<tr>
-                    <td>${ticket.id}</td>
-                    <td>${ticket.type}</td>
-                    <td>${ticket.reporter}</td>
-                    <td>${ticket.date}</td>
-                    <td>${ticket.status}</td>
-                    <td>
-                        <button onclick="editTicket(${ticket.id})">Editar</button>
-                        <button onclick="deleteTicket(${ticket.id})">Eliminar</button>
-                    </td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
-
-        function editTicket(id) {
-            const ticket = tickets.find(t => t.id === id);
-            if (ticket) {
-                document.getElementById('ticketType').value = ticket.type;
-                document.getElementById('reporter').value = ticket.reporter;
-                document.getElementById('ticketDate').value = ticket.date;
-                document.getElementById('status').value = ticket.status;
-                document.getElementById('advisor').value = ticket.advisor;
-                document.getElementById('company').value = ticket.company;
-                document.getElementById('description').value = ticket.description;
-                document.getElementById('newTicket').style.display = 'block';
+        // Funciones de Autenticación
+        /**
+         * Inicia la sesión de un usuario.
+         * @param {string} correo
+         * @param {string} contrasena
+         * @returns {boolean}
+         */
+        const login = useCallback((correo, contrasena) => {
+            const usuario = usuarios.find(u => u.correo === correo && u.contrasena === contrasena);
+            if (usuario) {
+                setUsuarioLogueado(usuario);
+                mostrarMensaje('success', 'Inicio de sesión exitoso');
+                return true;
+            } else {
+                mostrarMensaje('error', 'Credenciales inválidas');
+                return false;
             }
+        }, [usuarios, mostrarMensaje]);
+
+        const logout = useCallback(() => {
+            setUsuarioLogueado(null);
+            mostrarMensaje('info', 'Sesión cerrada');
+        }, [mostrarMensaje]);
+
+        /**
+         * Registra un nuevo usuario.
+         * @param {Omit<Usuario, 'id'>} nuevoUsuario
+         * @returns {boolean}
+         */
+        const registrarUsuario = useCallback((nuevoUsuario) => {
+            const existeUsuario = usuarios.some(u => u.correo === nuevoUsuario.correo);
+            if (existeUsuario) {
+                mostrarMensaje('error', 'El correo ya está registrado');
+                return false;
+            }
+            const usuarioConId = { ...nuevoUsuario, id: crypto.randomUUID() };
+            setUsuarios([...usuarios, usuarioConId]);
+            mostrarMensaje('success', 'Usuario registrado exitosamente');
+            return true;
+        }, [usuarios, mostrarMensaje]);
+
+        // Funciones CRUD para Tickets
+        /**
+         * Agrega un nuevo ticket.
+         * @param {Omit<Ticket, 'idTicket'>} nuevoTicket
+         */
+        const agregarTicket = useCallback((nuevoTicket) => {
+            const ticketConId = { ...nuevoTicket, idTicket: crypto.randomUUID() };
+            setTickets([...tickets, ticketConId]);
+            mostrarMensaje('success', 'Ticket creado exitosamente');
+        }, [tickets, mostrarMensaje]);
+
+        /**
+         * Edita un ticket existente.
+         * @param {string} idTicket
+         * @param {Partial<Ticket>} nuevosDatos
+         */
+        const editarTicket = useCallback((idTicket, nuevosDatos) => {
+            setTickets(tickets.map(t =>
+                t.idTicket === idTicket ? { ...t, ...nuevosDatos } : t
+            ));
+            mostrarMensaje('success', 'Ticket editado exitosamente');
+        }, [tickets, mostrarMensaje]);
+
+        /**
+         * Elimina un ticket.
+         * @param {string} idTicket
+         */
+        const borrarTicket = useCallback((idTicket) => {
+            setTickets(tickets.filter(t => t.idTicket !== idTicket));
+            mostrarMensaje('success', 'Ticket eliminado exitosamente');
+        }, [tickets, mostrarMensaje]);
+
+        // Funciones CRUD para Empresas
+        /**
+         * Agrega una nueva empresa.
+         * @param {Omit<Empresa, 'id'>} nuevaEmpresa
+         */
+        const agregarEmpresa = useCallback((nuevaEmpresa) => {
+            const empresaConId = { ...nuevaEmpresa, id: crypto.randomUUID() };
+            setEmpresas([...empresas, empresaConId]);
+            mostrarMensaje('success', 'Empresa agregada exitosamente');
+        }, [empresas, mostrarMensaje]);
+
+        /**
+         * Edita una empresa existente.
+         * @param {string} id
+         * @param {Partial<Empresa>} nuevosDatos
+         */
+        const editarEmpresa = useCallback((id, nuevosDatos) => {
+            setEmpresas(empresas.map(e =>
+                e.id === id ? { ...e, ...nuevosDatos } : e
+            ));
+            mostrarMensaje('success', 'Empresa editada exitosamente');
+        }, [empresas, mostrarMensaje]);
+
+        /**
+         * Elimina una empresa.
+         * @param {string} id
+         */
+        const borrarEmpresa = useCallback((id) => {
+            setEmpresas(empresas.filter(e => e.id !== id));
+            mostrarMensaje('success', 'Empresa eliminada exitosamente');
+        }, [empresas, mostrarMensaje]);
+
+        // Funciones CRUD para Asesores
+        /**
+         * Agrega un nuevo asesor.
+         * @param {Omit<Asesor, 'id'>} nuevoAsesor
+         */
+        const agregarAsesor = useCallback((nuevoAsesor) => {
+            const asesorConId = { ...nuevoAsesor, id: crypto.randomUUID() };
+            setAsesores([...asesores, asesorConId]);
+            mostrarMensaje('success', 'Asesor agregado exitosamente');
+        }, [asesores, mostrarMensaje]);
+
+        /**
+         * Edita un asesor existente.
+         * @param {string} id
+         * @param {Partial<Asesor>} nuevosDatos
+         */
+        const editarAsesor = useCallback((id, nuevosDatos) => {
+            setAsesores(asesores.map(a =>
+                a.id === id ? { ...a, ...nuevosDatos } : a
+            ));
+            mostrarMensaje('success', 'Asesor editado exitosamente');
+        }, [asesores, mostrarMensaje]);
+
+        /**
+         * Elimina un asesor.
+         * @param {string} id
+         */
+        const borrarAsesor = useCallback((id) => {
+            setAsesores(asesores.filter(a => a.id !== id));
+            mostrarMensaje('success', 'Asesor eliminado exitosamente');
+        }, [asesores, mostrarMensaje]);
+
+        // Funciones CRUD para Clientes
+        /**
+         * Agrega un nuevo cliente.
+         * @param {Omit<Cliente, 'id'>} nuevoCliente
+         */
+        const agregarCliente = useCallback((nuevoCliente) => {
+            const clienteConId = { ...nuevoCliente, id: crypto.randomUUID() };
+            setClientes([...clientes, clienteConId]);
+            mostrarMensaje('success', 'Cliente agregado exitosamente');
+        }, [clientes, mostrarMensaje]);
+
+        /**
+         * Edita un cliente existente.
+         * @param {string} id
+         * @param {Partial<Cliente>} nuevosDatos
+         */
+        const editarCliente = useCallback((id, nuevosDatos) => {
+            setClientes(clientes.map(c =>
+                c.id === id ? { ...c, ...nuevosDatos } : c
+            ));
+            mostrarMensaje('success', 'Cliente editado exitosamente');
+        }, [clientes, mostrarMensaje]);
+
+        /**
+         * Elimina un cliente.
+         * @param {string} id
+         */
+        const borrarCliente = useCallback((id) => {
+            setClientes(clientes.filter(c => c.id !== id));
+            mostrarMensaje('success', 'Cliente eliminado exitosamente');
+        }, [clientes, mostrarMensaje]);
+
+        return {
+            tickets, empresas, asesores, clientes, usuarios, usuarioLogueado, mensaje,
+            agregarTicket, editarTicket, borrarTicket,
+            agregarEmpresa, editarEmpresa, borrarEmpresa,
+            agregarAsesor, editarAsesor, borrarAsesor,
+            agregarCliente, editarCliente, borrarCliente,
+            login, logout, registrarUsuario,
+            mostrarMensaje,
+            setUsuarioLogueado
+        };
+    };
+
+    // ===============================
+    // Componentes de la Aplicación
+    // ===============================
+
+    /**
+     * Componente para mostrar botones personalizados.
+     * @param {object} props
+     * @param {React.ReactNode} props.children
+     * @param {() => void} props.onClick
+     * @param {string} [props.variant]
+     * @param {string} [props.className]
+     * @param {React.ComponentType<{ className?: string }>} [props.icon]
+     * @param {any} [props.props]
+     * @returns {string}
+     */
+    const BotonPersonalizado = ({ children, onClick, variant = 'default', className, icon: Icon, ...props }) => {
+        let baseClass = 'boton-personalizado';
+        switch (variant) {
+            case 'default':
+                baseClass += ' boton-default';
+                break;
+            case 'destructive':
+                baseClass += ' boton-destructive';
+                break;
+            case 'outline':
+                baseClass += ' boton-outline';
+                break;
+            case 'ghost':
+                baseClass += ' boton-ghost';
+                break;
+            default:
+                baseClass += ' boton-default';
         }
 
-        function deleteTicket(id) {
-            tickets = tickets.filter(t => t.id !== id);
-            listTickets();
-        }
+        return (
+            `<button
+                onclick="${onClick.toString()}"
+                class="${baseClass} ${className || ''}"
+                ${Object.entries(props).map(([key, value]) => `${key}="${value}"`).join(' ')}
+            >
+                ${Icon ? `<i data-lucide="${Icon.name}"></i>` : ''} ${children}
+            </button>`
+        );
+    };
 
-        function resetForm(formId) {
-            document.getElementById(formId).querySelector('form').reset();
-        }
-    </script>
-</body>
-</html>
-```
+    /**
+     * Componente para mostrar alertas
