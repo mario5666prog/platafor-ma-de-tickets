@@ -3,138 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Tickets</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Gestión de Tickets</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .custom-button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .boton-personalizado {
+            @apply bg-gradient-to-r text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline transition duration-300 ease-in-out;
         }
-        .custom-button:hover {
-            background-color: #0056b3;
+        .boton-personalizado-verde {
+            @apply from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600;
         }
-        .custom-button.delete {
-            background-color: #dc3545;
+        .boton-personalizado-azul {
+            @apply from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600;
         }
-        .custom-button.delete:hover {
-            background-color: #c82333;
+        .boton-personalizado-rojo {
+            @apply from-red-400 to-orange-500 hover:from-red-500 hover:to-orange-600;
         }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        form label {
-            display: block;
-            margin-top: 10px;
-        }
-        form input, form select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-        table thead tr {
-            background-color: #f0f0f0;
-        }
-        table th, table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        table tbody tr:hover {
-            background-color: #f5f5f5;
-        }
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-        #registro {
-            display: none; /* Oculta la sección de registro por defecto */
+        .boton-personalizado-amarillo {
+            @apply from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-800;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h2>Iniciar Sesión</h2>
-        <form id="loginForm">
-            <label for="username">Usuario:</label>
-            <input type="text" id="username" name="username" required><br><br>
-            <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" required><br><br>
-            <button type="submit" class="custom-button">Iniciar Sesión</button>
-        </form>
-        <p>¿No tienes cuenta? <a href="#registro" id="mostrarRegistro">Regístrate</a></p>
-    </div>
+<body class="bg-gray-100 p-6">
+    <h1 class="text-3xl font-semibold text-gray-800 mb-8 text-center">Gestión de Tickets</h1>
 
-    <div class="container" id="registro">
-        <h2>Registro</h2>
-        <form id="registerForm">
-            <label for="newUsername">Usuario:</label>
-            <input type="text" id="newUsername" name="newUsername" required><br><br>
-            <label for="newPassword">Contraseña:</label>
-            <input type="password" id="newPassword" name="newPassword" required><br><br>
-            <button type="submit" class="custom-button">Registrarse</button>
+    <section id="login-section" class="bg-white rounded-lg shadow-md p-8 w-full max-w-md mx-auto mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Inicia Sesión en tu Cuenta</h2>
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                <input type="email" id="email" placeholder="Ingresa tu correo electrónico" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                <input type="password" id="password" placeholder="Ingresa tu contraseña" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <button type="submit" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out">
+                Iniciar Sesión
+            </button>
         </form>
-        <p>¿Ya tienes cuenta? <a href="#">Iniciar Sesión</a></p>
-    </div>
+        <div class="mt-4 text-center">
+            <a href="#" class="text-sm text-blue-500 hover:text-blue-700 focus:outline-none focus:shadow-outline">
+                ¿Olvidaste tu contraseña?
+            </a>
+        </div>
+        <div class="mt-6 text-center">
+            <p class="text-gray-600 text-sm">¿No tienes una cuenta? <a href="#" class="text-green-500 hover:text-green-700 font-semibold focus:outline-none focus:shadow-outline">Regístrate</a></p>
+        </div>
+    </section>
+
+    <section id="listado-tickets" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Listado de Tickets</h2>
+        <table class="min-w-full table-auto rounded-lg hidden" id="tabla-tickets">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="px-4 py-2 text-left">ID Ticket</th>
+                    <th class="px-4 py-2 text-left">Tipo de Ticket</th>
+                    <th class="px-4 py-2 text-left">Quién Reporta</th>
+                    <th class="px-4 py-2 text-left">Fecha</th>
+                    <th class="px-4 py-2 text-left">Estatus</th>
+                    <th class="px-4 py-2 text-left">Asesor que Atiende</th>
+                    <th class="px-4 py-2 text-left">Empresa</th>
+                    <th class="px-4 py-2 text-left">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600">
+                <tr>
+                    <td colspan="8" class="px-4 py-2 text-center text-gray-500">No hay tickets disponibles</td>
+                </tr>
+            </tbody>
+        </table>
+        <button id="nuevo-ticket-btn" class="boton-personalizado boton-personalizado-verde mt-4">Nuevo Ticket</button>
+    </section>
+
+    <section id="formulario-ticket" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4 titulo-formulario">Nuevo Ticket</h2>
+        <form id="ticket-form" class="space-y-4">
+            <div>
+                <label for="tipo-ticket" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Ticket</label>
+                <input type="text" id="tipo-ticket" placeholder="Ej: Soporte Técnico" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="quien-reporta" class="block text-gray-700 text-sm font-bold mb-2">Quién Reporta</label>
+                <input type="text" id="quien-reporta" placeholder="Nombre de quien reporta" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="fecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha</label>
+                <input type="date" id="fecha" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="estatus" class="block text-gray-700 text-sm font-bold mb-2">Estatus</label>
+                <select id="estatus" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="abierto">Abierto</option>
+                    <option value="en-proceso">En Proceso</option>
+                    <option value="cerrado">Cerrado</option>
+                </select>
+            </div>
+            <div>
+                <label for="asesor" class="block text-gray-700 text-sm font-bold mb-2">Asesor que Atiende</label>
+                <input type="text" id="asesor" placeholder="Nombre del asesor" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label for="empresa" class="block text-gray-700 text-sm font-bold mb-2">Empresa</label>
+                <input type="text" id="empresa" placeholder="Nombre de la empresa" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <fieldset class="border rounded-md p-4 space-y-4">
+                <legend class="text-lg font-semibold text-gray-700">Información de la Empresa</legend>
+                <div>
+                    <label for="empresa-nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre de la Empresa</label>
+                    <input type="text" id="empresa-nombre" placeholder="Nombre de la empresa" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="empresa-direccion" class="block text-gray-700 text-sm font-bold mb-2">Dirección</label>
+                    <input type="text" id="empresa-direccion" placeholder="Dirección de la empresa" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="empresa-telefono" class="block text-gray-700 text-sm font-bold mb-2">Teléfono</label>
+                    <input type="tel" id="empresa-telefono" placeholder="Teléfono de la empresa" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="empresa-correo" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                    <input type="email" id="empresa-correo" placeholder="Correo electrónico de la empresa" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="empresa-contacto" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Contacto</label>
+                    <input type="text" id="empresa-contacto" placeholder="Nombre del contacto" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </fieldset>
+            <fieldset class="border rounded-md p-4 space-y-4">
+                <legend class="text-lg font-semibold text-gray-700">Información del Asesor</legend>
+                <div>
+                    <label for="asesor-nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre del Asesor</label>
+                    <input type="text" id="asesor-nombre" placeholder="Nombre del asesor" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="asesor-telefono" class="block text-gray-700 text-sm font-bold mb-2">Teléfono del Asesor</label>
+                    <input type="tel" id="asesor-telefono" placeholder="Teléfono del asesor" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="asesor-correo" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico del Asesor</label>
+                    <input type="email" id="asesor-correo" placeholder="Correo electrónico del asesor" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="asesor-numero-trabajador" class="block text-gray-700 text-sm font-bold mb-2">Número de Trabajador</label>
+                    <input type="text" id="asesor-numero-trabajador" placeholder="Número de trabajador" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </fieldset>
+            <fieldset class="border rounded-md p-4 space-y-4">
+                <legend class="text-lg font-semibold text-gray-700">Información del Cliente</legend>
+                <div>
+                    <label for="cliente-nombre" class="block text-gray-700 text-sm font-bold mb-2">Nombre del Cliente</label>
+                    <input type="text" id="cliente-nombre" placeholder="Nombre del cliente" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="cliente-correo" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico del Cliente</label>
+                    <input type="email" id="cliente-correo" placeholder="Correo electrónico del cliente" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                 <div>
+                    <label for="cliente-empresa" class="block text-gray-700 text-sm font-bold mb-2">Empresa del Cliente</label>
+                    <input type="text" id="cliente-empresa" placeholder="Empresa del cliente" required class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+            </fieldset>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button type="button" id="cancelar-btn" class="boton-personalizado boton-personalizado-rojo">Cancelar</button>
+                <button type="submit" class="boton-personalizado boton-personalizado-verde">Guardar Ticket</button>
+            </div>
+        </form>
+    </section>
+
+     <section id="detalle-ticket" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Detalle del Ticket <span id="detalle-id-ticket"></span></h2>
+        <div id="detalle-contenido" class="space-y-4">
+            <p><span class="font-semibold text-gray-700">Tipo de Ticket:</span> <span id="detalle-tipo-ticket"></span></p>
+            <p><span class="font-semibold text-gray-700">Quién Reporta:</span> <span id="detalle-quien-reporta"></span></p>
+            <p><span class="font-semibold text-gray-700">Fecha:</span> <span id="detalle-fecha"></span></p>
+            <p><span class="font-semibold text-gray-700">Estatus:</span> <span id="detalle-estatus"></span></p>
+            <p><span class="font-semibold text-gray-700">Asesor que Atiende:</span> <span id="detalle-asesor"></span></p>
+            <p><span class="font-semibold text-gray-700">Empresa:</span> <span id="detalle-empresa"></span></p>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Información de la Empresa</h3>
+            <p><span class="font-semibold text-gray-700">Nombre de la Empresa:</span> <span id="detalle-empresa-nombre"></span></p>
+            <p><span class="font-semibold text-gray-700">Dirección:</span> <span id="detalle-empresa-direccion"></span></p>
+            <p><span class="font-semibold text-gray-700">Teléfono:</span> <span id="detalle-empresa-telefono"></span></p>
+            <p><span class="font-semibold text-gray-700">Correo Electrónico:</span> <span id="detalle-empresa-correo"></span></p>
+            <p><span class="font-semibold text-gray-700">Nombre de Contacto:</span> <span id="detalle-empresa-contacto"></span></p>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Información del Asesor</h3>
+            <p><span class="font-semibold text-gray-700">Nombre del Asesor:</span> <span id="detalle-asesor-nombre"></span></p>
+            <p><span class="font-semibold text-gray-700">Teléfono del Asesor:</span> <span id="detalle-asesor-telefono"></span></p>
+            <p><span class="font-semibold text-gray-700">Correo Electrónico del Asesor:</span> <span id="detalle-asesor-correo"></span></p>
+            <p><span class="font-semibold text-gray-700">Número de Trabajador:</span> <span id="detalle-asesor-numero-trabajador"></span></p>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Información del Cliente</h3>
+            <p><span class="font-semibold text-gray-700">Nombre del Cliente:</span> <span id="detalle-cliente-nombre"></span></p>
+            <p><span class="font-semibold text-gray-700">Correo Electrónico del Cliente:</span> <span id="detalle-cliente-correo"></span></p>
+            <p><span class="font-semibold text-gray-700">Empresa del Cliente:</span> <span id="detalle-cliente-empresa"></span></p>
+        </div>
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="button" id="editar-ticket-btn" class="boton-personalizado boton-personalizado-azul">Editar Ticket</button>
+            <button type="button" id="borrar-ticket-btn" class="boton-personalizado boton-personalizado-rojo">Borrar Ticket</button>
+            <button type="button" id="volver-lista-btn" class="boton-personalizado boton-personalizado-amarillo">Volver a la Lista</button>
+        </div>
+    </section>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = this.username.value;
-            const password = this.password.value;
-            // Aquí iría la lógica de validación del inicio de sesión
-            if (username === 'admin' && password === 'password') {
-                alert('Inicio de sesión exitoso. Redirigiendo a la lista de tickets...');
-                window.location.href = 'tickets/list.html'; // Redirigir a la lista de tickets
+        let tickets = [];
+        let editingIndex = null;
+
+        const loginSection = document.getElementById("login-section");
+        const loginForm = document.getElementById("login-form");
+        const listaTicketsSection = document.getElementById("listado-tickets");
+        const formularioTicketSection = document.getElementById("formulario-ticket");
+        const detalleTicketSection = document.getElementById("detalle-ticket");
+
+        const nuevoTicketBtn = document.getElementById("nuevo-ticket-btn");
+        const cancelarBtn = document.getElementById("cancelar-btn");
+        const ticketForm = document.getElementById("ticket-form");
+        const tablaTickets = document.getElementById("tabla-tickets");
+        const tablaTicketsBody = tablaTickets.querySelector("tbody");
+        const tituloFormulario = document.querySelector(".titulo-formulario");
+
+        const editarTicketBtn = document.getElementById("editar-ticket-btn");
+        const borrarTicketBtn = document.getElementById("borrar-ticket-btn");
+        const volverListaBtn = document.getElementById("volver-lista-btn");
+
+        const detalleIdTicketElement = document.getElementById("detalle-id-ticket");
+        const detalleTipoTicketElement = document.getElementById("detalle-tipo-ticket");
+        const detalleQuienReportaElement = document.getElementById("detalle-quien-reporta");
+        const detalleFechaElement = document.getElementById("detalle-fecha");
+        const detalleEstatusElement = document.getElementById("detalle-estatus");
+        const detalleAsesorElement = document.getElementById("detalle-asesor");
+        const detalleEmpresaElement = document.getElementById("detalle-empresa");
+        const detalleEmpresaNombreElement = document.getElementById("detalle-empresa-nombre");
+        const detalleEmpresaDireccionElement = document.getElementById("detalle-empresa-direccion");
+        const detalleEmpresaTelefonoElement = document.getElementById("detalle-empresa-telefono");
+        const detalleEmpresaCorreoElement = document.getElementById("detalle-empresa-correo");
+        const detalleEmpresaContactoElement = document.getElementById("detalle-empresa-contacto");
+        const detalleAsesorNombreElement = document.getElementById("detalle-asesor-nombre");
+        const detalleAsesorTelefonoElement = document.getElementById("detalle-asesor-telefono");
+        const detalleAsesorCorreoElement = document.getElementById("detalle-asesor-correo");
+        const detalleAsesorNumeroTrabajadorElement = document.getElementById("detalle-asesor-numero-trabajador");
+        const detalleClienteNombreElement = document.getElementById("detalle-cliente-nombre");
+        const detalleClienteCorreoElement = document.getElementById("detalle-cliente-correo");
+        const detalleClienteEmpresaElement = document.getElementById("detalle-cliente-empresa");
+
+
+        loginForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            // Simulación de validación de credenciales (¡Reemplazar con lógica real!)
+            if (email === "usuario@ejemplo.com" && password === "contrasena") {
+                // Ocultar el formulario de inicio de sesión y mostrar la lista de tickets
+                loginSection.classList.add("hidden");
+                listaTicketsSection.classList.remove("hidden");
+                cargarTicketsDeLocalStorage();
+                mostrarListaDeTickets(); // Asegúrate de que esta función se llame aquí
             } else {
-                alert('Credenciales incorrectas. Por favor, inténtalo de nuevo.');
+                alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
             }
         });
 
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const newUsername = this.newUsername.value;
-            const newPassword = this.newPassword.value;
-            // Aquí iría la lógica de registro de usuario (guardar en la base de datos)
-            alert(`Usuario "${newUsername}" registrado. Redirigiendo al inicio de sesión...`);
-            window.location.href = '#'; // Redirigir al inicio de sesión
+        nuevoTicketBtn.addEventListener("click", () => {
+            formularioTicketSection.classList.remove("hidden");
+            listaTicketsSection.classList.add("hidden");
+            detalleTicketSection.classList.add("hidden");
+            tituloFormulario.textContent = "Nuevo Ticket";
+            ticketForm.reset();
+            editingIndex = null;
         });
 
-        // Mostrar la sección de registro al hacer clic en el enlace
-        document.getElementById('mostrarRegistro').addEventListener('click', function(e) {
-            e.preventDefault(); // Evita el comportamiento predeterminado del enlace
-            document.getElementById('registro').style.display = 'block'; // Muestra la sección de registro
+        cancelarBtn.addEventListener("click", () => {
+            formularioTicketSection.classList.add("hidden");
+            listaTicketsSection.classList.remove("hidden");
+            detalleTicketSection.classList.add("hidden");
         });
+
+        volverListaBtn.addEventListener("click", () => {
+            listaTicketsSection.classList.remove("hidden");
+            detalleTicketSection.classList.add("hidden");
+            formularioTicketSection.classList.add("hidden");
+        });
+
+        ticketForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const tipoTicket = document.getElementById("tipo-ticket").value;
+            const quienReporta = document.getElementById("quien-reporta").value;
+            const fecha = document.getElementById("fecha").value;
+            const estatus = document.getElementById("estatus").value;
+            const asesor = document.getElementById("asesor").value;
+            const empresa = document.getElementById("empresa").value;
+            const empresaNombre = document.getElementById("empresa-nombre").value;
+            const empresaDireccion = document.getElementById("empresa-direccion").value;
+            const empresaTelefono = document.getElementById("empresa-telefono").value;
+            const empresaCorreo = document.getElementById("empresa-correo").value;
+            const empresaContacto = document.getElementById("empresa-contacto").value;
+            const asesorNombre = document.getElementById("asesor-nombre").value;
+            const asesorTelefono = document.getElementById("asesor-telefono").value;
+            const asesorCorreo = document.getElementById("asesor-correo").value;
+            const asesorNumeroTrabajador = document.getElementById("asesor-numero-trabajador").value;
+            const clienteNombre = document.getElementById("cliente-nombre").value;
+            const clienteCorreo = document.getElementById("cliente-correo").value;
+            const clienteEmpresa = document.getElementById("cliente-empresa").value;
+
+            if (editingIndex !== null) {
+                // Actualizar ticket existente
+                tickets[editingIndex] = {
+                    tipoTicket,
+                    quienReporta,
+                    fecha,
+                    estatus,
+                    asesor,
+                    empresa,
+                    empresaNombre,
+                    empresaDireccion,
+                    empresaTelefono,
+                    empresaCorreo,
+                    empresaContacto,
+                    asesorNombre,
+                    asesorTelefono,
+                    asesorCorreo,
+                    asesorNumeroTrabajador,
+                    clienteNombre,
+                    clienteCorreo,
+                    clienteEmpresa
+                };
+            } else {
+                // Crear nuevo ticket
+                const nuevoTicket = {
+                    tipoTicket,quienReporta,
+                    fecha,
+                    estatus,
+                    asesor,
+                    empresa,
+                    empresaNombre,
+                    empresaDireccion,
+                    empresaTelefono,
+                    empresaCorreo,
+                    empresaContacto,
+                    asesorNombre,
+                    asesorTelefono,
+                    asesorCorreo,
+                    asesorNumeroTrabajador,
+                    clienteNombre,
+                    clienteCorreo,
+                    clienteEmpresa
+                };
+                tickets.push(nuevoTicket);
+            }
+
+            guardarTicketsEnLocalStorage();
+            mostrarListaDeTickets();
+            formularioTicketSection.classList.add("hidden");
+            listaTicketsSection.classList.remove("hidden");
+            detalleTicketSection.classList.add("hidden");
+            ticketForm.reset();
+            editingIndex = null;
+        });
+
+        function mostrarListaDeTickets() {
+            if (tickets.length === 0) {
+                tablaTickets.classList.add("hidden");
+                tablaTicketsBody.innerHTML = '<tr><td colspan="8" class="px-4 py-2 text-center text-gray-500">No hay tickets disponibles</td></tr>';
+            } else {
+                tablaTickets.classList.remove("hidden");
+                tablaTicketsBody.innerHTML = "";
+                tickets.forEach((ticket, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td class="px-4 py-2">${index + 1}</td>
+                        <td class="px-4 py-2">${ticket.tipoTicket}</td>
+                        <td class="px-4 py-2">${ticket.quienReporta}</td>
+                        <td class="px-4 py-2">${ticket.fecha}</td>
+                        <td class="px-4 py-2">${ticket.estatus}</td>
+                        <td class="px-4 py-2">${ticket.asesor}</td>
+                        <td class="px-4 py-2">${ticket.empresa}</td>
+                        <td class="px-4 py-2">
+                            <button class="ver-detalle-btn boton-personalizado boton-personalizado-azul text-xs mr-1" data-index="${index}">Ver Detalle</button>
+                        </td>
+                    `;
+                    tablaTicketsBody.appendChild(row);
+                });
+
+                const verDetalleBtns = document.querySelectorAll(".ver-detalle-btn");
+                verDetalleBtns.forEach(btn => {
+                    btn.addEventListener("click", (event) => {
+                        const index = event.target.dataset.index;
+                        mostrarDetalleDeTicket(index);
+                    });
+                });
+            }
+        }
+
+        function mostrarDetalleDeTicket(index) {
+            const ticket = tickets[index];
+             detalleIdTicketElement.textContent = index + 1;
+            detalleTipoTicketElement.textContent = ticket.tipoTicket;
+            detalleQuienReportaElement.textContent = ticket.quienReporta;
+            detalleFechaElement.textContent = ticket.fecha;
+            detalleEstatusElement.textContent = ticket.estatus;
+            detalleAsesorElement.textContent = ticket.asesor;
+            detalleEmpresaElement.textContent = ticket.empresa;
+            detalleEmpresaNombreElement.textContent = ticket.empresaNombre;
+            detalleEmpresaDireccionElement.textContent = ticket.empresaDireccion;
+            detalleEmpresaTelefonoElement.textContent = ticket.empresaTelefono;
+            detalleEmpresaCorreoElement.textContent = ticket.empresaCorreo;
+            detalleEmpresaContactoElement.textContent = ticket.empresaContacto;
+            detalleAsesorNombreElement.textContent = ticket.asesorNombre;
+            detalleAsesorTelefonoElement.textContent = ticket.asesorTelefono;
+            detalleAsesorCorreoElement.textContent = ticket.asesorCorreo;
+            detalleAsesorNumeroTrabajadorElement.textContent = ticket.asesorNumeroTrabajador;
+            detalleClienteNombreElement.textContent = ticket.clienteNombre;
+            detalleClienteCorreoElement.textContent = ticket.clienteCorreo;
+            detalleClienteEmpresaElement.textContent = ticket.clienteEmpresa;
+
+            detalleTicketSection.classList.remove("hidden");
+            listaTicketsSection.classList.add("hidden");
+            formularioTicketSection.classList.add("hidden");
+
+            editarTicketBtn.dataset.index = index;
+            borrarTicketBtn.dataset.index = index;
+        }
+
+        editarTicketBtn.addEventListener("click", (event) => {
+            const index = event.target.dataset.index;
+            const ticket = tickets[index];
+            editingIndex = index;
+
+            tituloFormulario.textContent = "Editar Ticket";
+            formularioTicketSection.classList.remove("hidden");
+            listaTicketsSection.classList.add("hidden");
+            detalleTicketSection.classList.add("hidden");
+
+            document.getElementById("tipo-ticket").value = ticket.tipoTicket;
+            document.getElementById("quien-reporta").value = ticket.quienReporta;
+            document.getElementById("fecha").value = ticket.fecha;
+            document.getElementById("estatus").value = ticket.estatus;
+            document.getElementById("asesor").value = ticket.asesor;
+            document.getElementById("empresa").value = ticket.empresa;
+            document.getElementById("empresa-nombre").value = ticket.empresaNombre;
+            document.getElementById("empresa-direccion").value = ticket.empresaDireccion;
+            document.getElementById("empresa-telefono").value = ticket.empresaTelefono;
+            document.getElementById("empresa-correo").value = ticket.empresaCorreo;
+            document.getElementById("empresa-contacto").value = ticket.empresaContacto;
+             document.getElementById("asesor-nombre").value = ticket.asesorNombre;
+            document.getElementById("asesor-telefono").value = ticket.asesorTelefono;
+            document.getElementById("asesor-correo").value = ticket.asesorCorreo;
+            document.getElementById("asesor-numero-trabajador").value = ticket.asesorNumeroTrabajador;
+            document.getElementById("cliente-nombre").value = ticket.clienteNombre;
+            document.getElementById("cliente-correo").value = ticket.clienteCorreo;
+            document.getElementById("cliente-empresa").value = ticket.clienteEmpresa;
+        });
+
+        borrarTicketBtn.addEventListener("click", (event) => {
+            const index = event.target.dataset.index;
+            tickets.splice(index, 1);
+            guardarTicketsEnLocalStorage();
+            mostrarListaDeTickets();
+            listaTicketsSection.classList.remove("hidden");
+            detalleTicketSection.classList.add("hidden");
+            formularioTicketSection.classList.add("hidden");
+        });
+
+        function cargarTicketsDeLocalStorage() {
+            const ticketsGuardados = localStorage.getItem("tickets");
+            if (ticketsGuardados) {
+                tickets = JSON.parse(ticketsGuardados);
+            }
+        }
+
+        function guardarTicketsEnLocalStorage() {
+            localStorage.setItem("tickets", JSON.stringify(tickets));
+        }
+
+        cargarTicketsDeLocalStorage();
+        mostrarListaDeTickets();
     </script>
 </body>
 </html>
