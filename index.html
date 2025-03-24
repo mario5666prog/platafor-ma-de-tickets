@@ -206,13 +206,6 @@
         <nav class="bg-white shadow-md p-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <span class="text-xl font-bold text-gray-800">Sistema de Tickets</span>
-                <button id="boton-inicio" class="boton-personalizado boton-ghost">Inicio</button>
-                <div id="menu-usuario" class="hidden">
-                    <button id="boton-tickets" class="boton-personalizado boton-ghost">Tickets</button>
-                    <button id="boton-empresas" class="boton-personalizado boton-ghost">Empresas</button>
-                    <button id="boton-asesores" class="boton-personalizado boton-ghost">Asesores</button>
-                    <button id="boton-clientes" class="boton-personalizado boton-ghost">Clientes</button>
-                </div>
             </div>
             <div id="menu-autenticacion">
                 <button id="boton-login" class="boton-personalizado boton-outline">
@@ -607,4 +600,18 @@
     };
 
     /**
-     * Componente para mostrar alertas
+     * Componente para mostrar alertas de mensaje.
+     * @param {object} props
+     * @param {Mensaje} props.mensaje
+     * @returns {string}
+     */
+    const AlertaMensaje = ({ mensaje }) => {
+        let IconComponent = 'CheckCircle';
+        let colorClass = 'bg-green-100 text-green-700 border-green-400';
+
+        switch (mensaje.tipo) {
+            case 'error':
+                IconComponent = 'AlertCircle';
+                colorClass = 'bg-red-100 text-red-700 border-red-400';
+                break;
+            case 'inf
