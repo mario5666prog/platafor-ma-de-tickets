@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tickets de Soporte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <style>
+        /* Estilos personalizados para los botones */
+        .btn-primary {
+            @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded;
+        }
+        .btn-secondary {
+            @apply bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded;
+        }
+        .btn-danger {
+            @apply bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded;
+        }
+        .btn-success {
+            @apply bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded;
+        }
+        .form-label {
+            @apply block text-gray-700 text-sm font-bold mb-2;
+        }
+        .form-input {
+            @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline;
+        }
+        .form-select {
+            @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline;
+        }
+        .error-message {
+            @apply text-red-500 text-xs italic;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-semibold text-center text-gray-800 mb-6">Sistema de Tickets de Soporte</h1>
+
+        <div id="login-section" class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="username" class="form-label">Usuario:</label>
+                    <input type="text" id="username" name="username" class="form-input" required>
+                    <div id="username-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="password" class="form-label">Contraseña:</label>
+                    <input type="password" id="password" name="password" class="form-input" required>
+                    <div id="password-error" class="error-message"></div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Iniciar Sesión</button>
+            </form>
+            <div class="mt-4 text-center">
+                <button id="register-button" class="text-blue-500 hover:underline">Registrarse</button>
+            </div>
+        </div>
+
+        <div id="register-section" class="bg-white shadow-md rounded-lg p-6 mb-8 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Registro de Usuario</h2>
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label for="register-username" class="form-label">Usuario:</label>
+                    <input type="text" id="register-username" name="register-username" class="form-input" required>
+                    <div id="register-username-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="register-password" class="form-label">Contraseña:</label>
+                    <input type="password" id="register-password" name="register-password" class="form-input" required>
+                    <div id="register-password-error" class="error-message"></div>
+                </div>
+                 <div>
+                    <label for="register-email" class="form-label">Correo Electrónico:</label>
+                    <input type="email" id="register-email" name="register-email" class="form-input" required>
+                    <div id="register-email-error" class="error-message"></div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Registrarse</button>
+            </form>
+            <div class="mt-4 text-center">
+                <button id="login-button-from-register" class="text-blue-500 hover:underline">Iniciar Sesión</button>
+            </div>
+        </div>
+
+        <div id="ticket-list-section" class="bg-white shadow-md rounded-lg p-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800">Lista de Tickets</h2>
+                <button id="add-ticket-button" class="btn-success">Nuevo Ticket</button>
+            </div>
+            <table id="ticket-list" class="min-w-full table-auto rounded-lg hidden">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-4 py-2 text-left">ID Ticket</th>
+                        <th class="px-4 py-2 text-left">Tipo de Ticket</th>
+                        <th class="px-4 py-2 text-left">Quién Reporta</th>
+                        <th class="px-4 py-2 text-left">Fecha</th>
+                        <th class="px-4 py-2 text-left">Estatus</th>
+                        <th class="px-4 py-2 text-left">Asesor que Atiende</th>
+                        <th class="px-4 py-2 text-left">Empresa</th>
+                        <th class="px-4 py-2 text-left">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    <tr>
+                        <td colspan="8" class="px-4 py-2 text-center text-gray-500">No hay tickets disponibles.</td>
+                    </tr>
+                </tbody>
+            </table>
+             <div id="no-tickets-message" class="text-center text-gray-500">No hay tickets disponibles.</div>
+        </div>
+
+        <div id="ticket-form-section" class="bg-white shadow-md rounded-lg p-6 hidden">
+            <h2 id="ticket-form-title" class="text-2xl font-semibold text-gray-800 mb-4">Nuevo Ticket</h2>
+            <form id="ticket-form" class="space-y-4">
+                <div>
+                    <label for="tipo-ticket" class="form-label">Tipo de Ticket:</label>
+                    <input type="text" id="tipo-ticket" name="tipo-ticket" class="form-input" required>
+                    <div id="tipo-ticket-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="quien-reporta" class="form-label">Quién Reporta:</label>
+                     <select id="quien-reporta" name="quien-reporta" class="form-select" required>
+                        <option value="">Seleccione Cliente</option>
+                    </select>
+                    <div id="quien-reporta-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="fecha" class="form-label">Fecha:</label>
+                    <input type="date" id="fecha" name="fecha" class="form-input" required>
+                    <div id="fecha-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="estatus" class="form-label">Estatus:</label>
+                    <select id="estatus" name="estatus" class="form-select" required>
+                        <option value="">Seleccione Estatus</option>
+                        <option value="Abierto">Abierto</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Cerrado">Cerrado</option>
+                    </select>
+                    <div id="estatus-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="asesor-atiende" class="form-label">Asesor que Atiende:</label>
+                    <select id="asesor-atiende" name="asesor-atiende" class="form-select" required>
+                        <option value="">Seleccione Asesor</option>
+                    </select>
+                    <div id="asesor-atiende-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="empresa" class="form-label">Empresa:</label>
+                    <select id="empresa" name="empresa" class="form-select" required>
+                        <option value="">Seleccione Empresa</option>
+                    </select>
+                    <div id="empresa-error" class="error-message"></div>
+                </div>
+                <input type="hidden" id="id-ticket" name="id-ticket">
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-ticket-button" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Funciones para manejar la lógica de la aplicación
+        let tickets = [];
+        let empresas = [];
+        let asesores = [];
+        let clientes = [];
+        let usuarios = []; // Array para almacenar usuarios registrados
+
+        // Elementos del DOM
+        const loginSection = document.getElementById('login-section');
+        const loginForm = document.getElementById('login-form');
+        const registerSection = document.getElementById('register-section');
+        const registerForm = document.getElementById('register-form');
+        const registerButton = document.getElementById('register-button');
+        const loginButtonFromRegister = document.getElementById('login-button-from-register');
+        const ticketListSection = document.getElementById('ticket-list-section');
+        const ticketListTable = document.getElementById('ticket-list');
+        const addTicketButton = document.getElementById('add-ticket-button');
+        const ticketFormSection = document.getElementById('ticket-form-section');
+        const ticketForm = document.getElementById('ticket-form');
+        const ticketFormTitle = document.getElementById('ticket-form-title');
+        const cancelTicketButton = document.getElementById('cancel-ticket-button');
+        const noTicketsMessage = document.getElementById('no-tickets-message');
+
+        // Campos del formulario de ticket
+        const idTicketInput = document.getElementById('id-ticket');
+        const tipoTicketInput = document.getElementById('tipo-ticket');
+        const quienReportaInput = document.getElementById('quien-reporta');
+        const fechaInput = document.getElementById('fecha');
+        const estatusInput = document.getElementById('estatus');
+        const asesorAtiendeInput = document.getElementById('asesor-atiende');
+        const empresaInput = document.getElementById('empresa');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const registerUsernameInput = document.getElementById('register-username');
+        const registerPasswordInput = document.getElementById('register-password');
+        const registerEmailInput = document.getElementById('register-email');
+
+
+        // Funciones de validación
+        function validarLogin() {
+            let esValido = true;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (username === '') {
+                mostrarError('username-error', 'El usuario es requerido');
+                esValido = false;
+            } else {
+                ocultarError('username-error');
+            }
+
+            if (password === '') {
+                mostrarError('password-error', 'La contraseña es requerida');
+                esValido = false;
+            } else {
+                ocultarError('password-error');
+            }
+
+            return esValido;
+        }
+
+        function validarRegistro() {
+            let esValido = true;
+            const username = registerUsernameInput.value.trim();
+            const password = registerPasswordInput.value.trim();
+             const email = registerEmailInput.value.trim();
+
+            if (username === '') {
+                mostrarError('register-username-error', 'El usuario es requerido');
+                esValido = false;
+            } else {
+                ocultarError('register-username-error');
+            }
+
+            if (password === '') {
+                mostrarError('register-password-error', 'La contraseña es requerida');
+                esValido = false;
+            } else {
+                ocultarError('register-password-error');
+            }
+            
+             if (email === '') {
+                mostrarError('register-email-error', 'El email es requerido');
+                esValido = false;
+            } else if (!validarEmail(email)) {
+                mostrarError('register-email-error', 'El email no es válido');
+                esValido = false;
+            }else {
+                ocultarError('register-email-error');
+            }
+
+            return esValido;
+        }
+        
+        function validarEmail(email) {
+            // Expresión regular para validar un correo electrónico
+            const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+            return regex.test(email);
+        }
+
+        function mostrarError(campo, mensaje) {
+            const campoError = document.getElementById(campo);
+            campoError.textContent = mensaje;
+            campoError.style.display = 'block';
+        }
+
+        function ocultarError(campo) {
+            const campoError = document.getElementById(campo);
+            campoError.textContent = '';
+            campoError.style.display = 'none';
+        }
+
+        function validarFormularioTicket() {
+            let esValido = true;
+
+            if (tipoTicketInput.value.trim() === '') {
+                mostrarError('tipo-ticket-error', 'El tipo de ticket es requerido');
+                esValido = false;
+            } else {
+                ocultarError('tipo-ticket-error');
+            }
+
+            if (quienReportaInput.value === '') {
+                mostrarError('quien-reporta-error', 'Debe seleccionar quién reporta');
+                esValido = false;
+            } else {
+                ocultarError('quien-reporta-error');
+            }
+
+            if (fechaInput.value === '') {
+                mostrarError('fecha-error', 'La fecha es requerida');
+                esValido = false;
+            } else {
+                ocultarError('fecha-error');
+            }
+
+            if (estatusInput.value === '') {
+                mostrarError('estatus-error', 'El estatus es requerido');
+                esValido = false;
+            } else {
+                ocultarError('estatus-error');
+            }
+
+            if (asesorAtiendeInput.value === '') {
+                mostrarError('asesor-atiende-error', 'Debe seleccionar un asesor');
+                esValido = false;
+            } else {
+                ocultarError('asesor-atiende-error');
+            }
+
+             if (empresaInput.value === '') {
+                mostrarError('empresa-error', 'Debe seleccionar una empresa');
+                esValido = false;
+            } else {
+                ocultarError('empresa-error');
+            }
+
+            return esValido;
+        }
+
+        // Funciones para cargar datos (simulados)
+        function cargarEmpresas() {
+            empresas = [
+                { id: 1, nombre: 'Empresa A', direccion: 'Dirección A', telefono: '1234567890', correo: 'empresaA@example.com', nombreContacto: 'Contacto A' },
+                { id: 2, nombre: 'Empresa B', direccion: 'Dirección B', telefono: '9876543210', correo: 'empresaB@example.com', nombreContacto: 'Contacto B' },
+            ];
+            // Cargar empresas en el select del formulario de tickets
+            empresaInput.innerHTML = '<option value="">Seleccione Empresa</option>';
+            empresas.forEach(empresa => {
+                const option = document.createElement('option');
+                option.value = empresa.id;
+                option.textContent = empresa.nombre;
+                empresaInput.appendChild(option);
+            });
+        }
+
+        function cargarAsesores() {
+            asesores = [
+                { id: 1, nombre: 'Asesor 1', telefono: '1111222233', correo: 'asesor1@example.com', numeroTrabajador: '1001' },
+                { id: 2, nombre: 'Asesor 2', telefono: '4444555566', correo: 'asesor2@example.com', numeroTrabajador: '1002' },
+            ];
+            // Cargar asesores en el select del formulario de tickets
+            asesorAtiendeInput.innerHTML = '<option value="">Seleccione Asesor</option>';
+            asesores.forEach(asesor => {
+                const option = document.createElement('option');
+                option.value = asesor.id;
+                option.textContent = asesor.nombre;
+                asesorAtiendeInput.appendChild(option);
+            });
+        }
+
+        function cargarClientes() {
+            clientes = [
+                { id: 1, nombre: 'Cliente 1', correo: 'cliente1@example.com', empresaId: 1 },
+                { id: 2, nombre: 'Cliente 2', correo: 'cliente2@example.com', empresaId: 2 },
+                { id: 3, nombre: 'Cliente 3', correo: 'cliente3@example.com', empresaId: 1 },
+            ];
+             // Cargar clientes en el select del formulario de tickets
+            quienReportaInput.innerHTML = '<option value="">Seleccione Cliente</option>';
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nombre;
+                quienReportaInput.appendChild(option);
+            });
+        }
+
+        function cargarTickets() {
+            // Simulación de datos de tickets
+            tickets = [
+                { id: 1, tipoTicket: 'Soporte Técnico', quienReporta: 1, fecha: '2024-07-28', estatus: 'Abierto', asesorAtiende: 1, empresa: 1 },
+                { id: 2, tipoTicket: 'Incidencia', quienReporta: 2, fecha: '2024-07-27', estatus: 'En Proceso', asesorAtiende: 2, empresa: 2 },
+            ];
+            actualizarListaTickets();
+        }
+
+        // Funciones para mostrar/ocultar secciones
+        function mostrarSeccion(seccion) {
+            loginSection.classList.add('hidden');
+            registerSection.classList.add('hidden');
+            ticketListSection.classList.add('hidden');
+            ticketFormSection.classList.add('hidden');
+
+            seccion.classList.remove('hidden');
+        }
+
+        // Función para inicializar la aplicación
+        function inicializarApp() {
+            cargarEmpresas();
+            cargarAsesores();
+            cargarClientes();
+            cargarTickets();
+            mostrarSeccion(loginSection); // Mostrar la sección de login por defecto
+        }
+
+        // Event listeners
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (validarLogin()) {
+                // Aquí iría la lógica de autenticación real
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                //Simulacion de login
+                const usuarioEncontrado = usuarios.find(user => user.username === username && user.password === password);
+                
+                if(usuarioEncontrado){
+                    alert('Inicio de sesión exitoso');
+                    mostrarSeccion(ticketListSection);
+                }
+                else{
+                    alert('Usuario o contraseña incorrectos. Intente de nuevo.');
+                }
+
+                
+            }
+        });
+
+        registerButton.addEventListener('click', () => {
+            mostrarSeccion(registerSection);
+        });
+
+        loginButtonFromRegister.addEventListener('click', () => {
+            mostrarSeccion(loginSection);
+        });
+
+        registerForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (validarRegistro()) {
+                // Aquí iría la lógica de registro de usuario real
+                const username = registerUsernameInput.value.trim();
+                const password = registerPasswordInput.value.trim();
+                const email = registerEmailInput.value.trim();
+                
+                //Simulacion de registro
+                usuarios.push({username, password, email});
+                alert('Registro exitoso. Ahora puede iniciar sesión.');
+                mostrarSeccion(loginSection);
+            }
+        });
+
+        addTicketButton.addEventListener('click', () => {
+            ticketFormTitle.textContent = 'Nuevo Ticket';
+            ticketForm.reset();
+            idTicketInput.value = ''; // Limpiar el ID para nuevo ticket
+            mostrarSeccion(ticketFormSection);
+        });
+
+        cancelTicketButton.addEventListener('click', () => {
+            mostrarSeccion(ticketListSection);
+        });
+
+        ticketForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (validarFormularioTicket()) {
+                const ticket = {
+                    id: idTicketInput.value ? parseInt(idTicketInput.value) : Math.max(0, ...tickets.map(t => t.id)) + 1,
+                    tipoTicket: tipoTicketInput.value,
+                    quienReporta: parseInt(quienReportaInput.value),
+                    fecha: fechaInput.value,
+                    estatus: estatusInput.value,
+                    asesorAtiende: parseInt(asesorAtiendeInput.value),
+                    empresa: parseInt(empresaInput.value),
+                };
+
+                if (ticket.id) {
+                    // Actualizar ticket existente
+                    const index = tickets.findIndex(t => t.id === ticket.id);
+                    tickets[index] = ticket;
+                } else {
+                    // Agregar nuevo ticket
+                    tickets.push(ticket);
+                }
+                actualizarListaTickets();
+                mostrarSeccion(ticketListSection);
+            }
+        });
+
+        function actualizarListaTickets() {
+            const ticketListBody = ticketListTable.querySelector('tbody');
+            ticketListBody.innerHTML = ''; // Limpiar la tabla
+
+            if (tickets.length === 0) {
+                ticketListTable.classList.add('hidden');
+                noTicketsMessage.classList.remove('hidden');
+            } else {
+                ticketListTable.classList.remove('hidden');
+                noTicketsMessage.classList.add('hidden');
+                tickets.forEach(ticket => {
+                    const row = document.createElement('tr');
+                    const empresaNombre = empresas.find(e => e.id === ticket.empresa)?.nombre || 'N/A';
+                    const asesorNombre = asesores.find(a => a.id === ticket.asesorAtiende)?.nombre || 'N/A';
+                    const clienteNombre = clientes.find(c => c.id === ticket.quienReporta)?.nombre || 'N/A';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-2">${ticket.id}</td>
+                        <td class="px-4 py-2">${ticket.tipoTicket}</td>
+                        <td class="px-4 py-2">${clienteNombre}</td>
+                        <td class="px-4 py-2">${ticket.fecha}</td>
+                        <td class="px-4 py-2">${ticket.estatus}</td>
+                        <td class="px-4 py-2">${asesorNombre}</td>
+                        <td class="px-4 py-2">${empresaNombre}</td>
+                        <td class="px-4 py-2">
+                            <button class="btn-primary mr-2 edit-button" data-id="${ticket.id}">Editar</button>
+                            <button class="btn-danger delete-button" data-id="${ticket.id}">Borrar</button>
+                        </td>
+                    `;
+                    ticketListBody.appendChild(row);
+                });
+
+                // Event listeners para los botones de editar y borrar
+                const editButtons = ticketListBody.querySelectorAll('.edit-button');
+                const deleteButtons = ticketListBody.querySelectorAll('.delete-button');
+
+                editButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const id = parseInt(button.dataset.id);
+                        const ticket = tickets.find(t => t.id === id);
+                        if (ticket) {
+                            idTicketInput.value = ticket.id;
+                            tipoTicketInput.value = ticket.tipoTicket;
+                            quienReportaInput.value = ticket.quienReporta;
+                            fechaInput.value = ticket.fecha;
+                            estatusInput.value = ticket.estatus;
+                            asesorAtiendeInput.value = ticket.asesorAtiende;
+                            empresaInput.value = ticket.empresa;
+                            ticketFormTitle.textContent = 'Editar Ticket';
+                            mostrarSeccion(ticketFormSection);
+                        }
+                    });
+                });
+
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const id = parseInt(button.dataset.id);
+                        if (confirm('¿Está seguro de que desea eliminar este ticket?')) {
+                            tickets = tickets.filter(t => t.id !== id);
+                            actualizarListaTickets();
+                            if (tickets.length === 0) {
+                                ticketListTable.classList.add('hidden');
+                                noTicketsMessage.classList.remove('hidden');
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Iniciar la aplicación cuando el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', inicializarApp);
+    </script>
+</body>
+</html>
