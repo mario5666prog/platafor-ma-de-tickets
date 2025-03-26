@@ -18,23 +18,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert"
-import { AlertCircle, CheckCircle, PlusCircle, Trash2, Edit, Save, XCircle, LogIn, LogOut, UserPlus, Users, Briefcase, Phone, Mail, IdCard, Calendar } from 'lucide-react';
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle, PlusCircle, Trash2, Edit, Save, X, LogIn, LogOut, UserPlus, KeyRound, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 // Interfaces
 interface Ticket {
@@ -45,7 +43,6 @@ interface Ticket {
     estatus: string;
     asesorQueAtiende: string;
     empresa: string;
-    descripcion: string; // Added description
 }
 
 interface Empresa {
@@ -69,807 +66,957 @@ interface Cliente {
     empresa: string;
 }
 
-interface User {
+interface Usuario {
     id: string;
-    username: string;
-    password: string; // In a real app, this should be hashed.
-    role: 'admin' | 'user'; // Added role for authorization
+    nombre: string;
+    correo: string;
+    contrasena: string;
+    rol: 'admin' | 'cliente';
 }
 
-// Mock Data (for demonstration purposes)
+// Dummy Data (para desarrollo inicial)
+const initialTickets: Ticket[] = [
+    { idTicket: '1', tipoDeTicket: 'Soporte', quienReporta: 'Juan Pérez', fecha: '2024-07-24', estatus: 'Abierto', asesorQueAtiende: 'Ana García', empresa: 'Empresa A' },
+    { idTicket: '2', tipoDeTicket: 'Incidencia', quienReporta: 'María López', fecha: '2024-07-23', estatus: 'En Proceso', asesorQueAtiende: 'Carlos Rodríguez', empresa: 'Empresa B' },
+];
+
 const initialEmpresas: Empresa[] = [
-    { nombre: 'TechCorp Solutions', direccion: '123 Main St', telefono: '555-1234', correo: 'info@techcorp.com', nombreDeContacto: 'Alice Smith' },
-    { nombre: 'Global Innovations', direccion: '456 Oak Ave', telefono: '555-5678', correo: 'sales@global.com', nombreDeContacto: 'Bob Johnson' },
-    { nombre: 'DataSys Systems', direccion: '789 Pine Ln', telefono: '555-9012', correo: 'support@datasys.com', nombreDeContacto: 'Charlie Brown' },
+    { nombre: 'Empresa A', direccion: 'Calle Principal 123', telefono: '55-1234-5678', correo: 'info@empresaA.com', nombreDeContacto: 'Juan Pérez' },
+    { nombre: 'Empresa B', direccion: 'Avenida Secundaria 456', telefono: '55-9876-5432', correo: 'contacto@empresaB.com', nombreDeContacto: 'María López' },
 ];
 
 const initialAsesores: Asesor[] = [
-    { nombre: 'Ana García', telefono: '555-2468', correo: 'ana.garcia@example.com', numeroDeTrabajador: '12345' },
-    { nombre: 'Luis Martínez', telefono: '555-1357', correo: 'luis.martinez@example.com', numeroDeTrabajador: '67890' },
+    { nombre: 'Ana García', telefono: '55-1122-3344', correo: 'ana.garcia@soporte.com', numeroDeTrabajador: '101' },
+    { nombre: 'Carlos Rodríguez', telefono: '55-5566-7788', correo: 'carlos.rodriguez@soporte.com', numeroDeTrabajador: '102' },
 ];
 
 const initialClientes: Cliente[] = [
-    { nombre: 'Carlos Pérez', correo: 'carlos.perez@client1.com', empresa: 'TechCorp Solutions' },
-    { nombre: 'Laura Rodríguez', correo: 'laura.rodriguez@client2.com', empresa: 'Global Innovations' },
+    { nombre: 'Juan Pérez', correo: 'juan.perez@cliente.com', empresa: 'Empresa A' },
+    { nombre: 'María López', correo: 'maria.lopez@cliente.com', empresa: 'Empresa B' },
 ];
 
-const initialTickets: Ticket[] = [
-    { idTicket: '1', tipoDeTicket: 'Soporte', quienReporta: 'Carlos Pérez', fecha: '2024-07-28', estatus: 'Abierto', asesorQueAtiende: 'Ana García', empresa: 'TechCorp Solutions', descripcion: 'Problema de inicio de sesión' },
-    { idTicket: '2', tipoDeTicket: 'Incidencia', quienReporta: 'Laura Rodríguez', fecha: '2024-07-27', estatus: 'En Proceso', asesorQueAtiende: 'Luis Martínez', empresa: 'Global Innovations', descripcion: 'Error al procesar pago' },
-    { idTicket: '3', tipoDeTicket: 'Consulta', quienReporta: 'Carlos Pérez', fecha: '2024-07-26', estatus: 'Cerrado', asesorQueAtiende: 'Ana García', empresa: 'TechCorp Solutions', descripcion: 'Consulta sobre la API' },
-];
-
-const initialUsers: User[] = [
-    { id: '1', username: 'admin', password: 'password', role: 'admin' }, // Don't store passwords in plain text!
-    { id: '2', username: 'user', password: 'password', role: 'user' },
+const initialUsuarios: Usuario[] = [
+    { id: '1', nombre: 'Admin User', correo: 'admin@example.com', contrasena: 'admin123', rol: 'admin' },
+    { id: '2', nombre: 'Client User', correo: 'client@example.com', contrasena: 'client456', rol: 'cliente' },
 ];
 
 // Animation Variants
 const listItemVariants = {
     hidden: { opacity: 0, y: -10 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: 10, transition: { duration: 0.2 } }
+    exit: { opacity: 0, y: 10, transition: { duration: 0.2 } },
 };
 
 // Helper Functions
-const formatDate = (date: string) => {
-    const [year, month, day] = date.split('-');
-    return `${day}/${month}/${year}`;
+const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
-const TicketApp: React.FC = () => {
-    // State
-    const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
-    const [empresas] = useState<Empresa[]>(initialEmpresas);
-    const [asesores] = useState<Asesor[]>(initialAsesores);
-    const [clientes] = useState<Cliente[]>(initialClientes);
-    const [users, setUsers] = useState<User[]>(initialUsers);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-    const [loginUsername, setLoginUsername] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
-    const [loginError, setLoginError] = useState<string | null>(null);
-    const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false); // State for register dialog
-    const [registerUsername, setRegisterUsername] = useState('');
-    const [registerPassword, setRegisterPassword] = useState('');
-    const [registerError, setRegisterError] = useState<string | null>(null);
-    const [newTicket, setNewTicket] = useState<Ticket>({
-        idTicket: '',
-        tipoDeTicket: '',
-        quienReporta: '',
-        fecha: formatDate(new Date().toISOString().split('T')[0]),
-        estatus: 'Abierto',
-        asesorQueAtiende: '',
-        empresa: '',
-        descripcion: '', // Added description
-    });
-    const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
-    const [isCreatingTicket, setIsCreatingTicket] = useState(false); // Track new ticket creation
-    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});  // State for form validation errors
+// Components
 
+const CustomButton = ({
+    children,
+    variant = 'default',
+    size = 'default',
+    className,
+    ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+    return (
+        <Button
+            variant={variant}
+            size={size}
+            className={cn(
+                'rounded-md shadow-md transition-all duration-300',
+                variant === 'default' && 'bg-blue-500 hover:bg-blue-600 text-white',
+                variant === 'secondary' && 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+                variant === 'destructive' && 'bg-red-500 hover:bg-red-600 text-white',
+                variant === 'outline' && 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50 hover:text-blue-600',
+                size === 'sm' && 'px-2 py-1 text-sm',
+                size === 'lg' && 'px-6 py-3 text-lg',
+                className
+            )}
+            {...props}
+        >
+            {children}
+        </Button>
+    );
+};
 
-    // Authentication
-    const handleLogin = () => {
-        setLoginError(null); // Reset error
-        const user = users.find(u => u.username === loginUsername && u.password === loginPassword); //  Plain text password for demo
-        if (user) {
-            setCurrentUser(user);
-            setIsLoginDialogOpen(false);
-            setLoginUsername('');
-            setLoginPassword('');
-        } else {
-            setLoginError('Credenciales inválidas. Por favor, verifica tu nombre de usuario y contraseña.');
-        }
+const TicketForm = ({
+    ticket,
+    empresas,
+    asesores,
+    onSave,
+    onCancel,
+    isEditing
+}: {
+    ticket: Ticket;
+    empresas: Empresa[];
+    asesores: Asesor[];
+    onSave: (ticket: Ticket) => void;
+    onCancel: () => void;
+    isEditing: boolean;
+}) => {
+    const [formData, setFormData] = useState<Ticket>(ticket);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    const validateForm = (data: Ticket) => {
+        const newErrors: { [key: string]: string } = {};
+
+        if (!data.tipoDeTicket) newErrors.tipoDeTicket = 'El tipo de ticket es requerido';
+        if (!data.quienReporta) newErrors.quienReporta = 'Quién reporta es requerido';
+        if (!data.fecha) newErrors.fecha = 'La fecha es requerida';
+        if (!data.estatus) newErrors.estatus = 'El estatus es requerido';
+        if (!data.asesorQueAtiende) newErrors.asesorQueAtiende = 'El asesor es requerido';
+        if (!data.empresa) newErrors.empresa = 'La empresa es requerida';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogout = () => {
-        setCurrentUser(null);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleRegister = () => {
-        setRegisterError(null);
-        if (!registerUsername.trim() || !registerPassword.trim()) {
-            setRegisterError("Por favor, ingresa nombre de usuario y contraseña.");
-            return;
+    const handleSave = () => {
+        if (validateForm(formData)) {
+            onSave(formData);
         }
-        if (users.find(u => u.username === registerUsername)) {
-            setRegisterError("El nombre de usuario ya existe.");
-            return;
-        }
-
-        const newUser: User = {
-            id: crypto.randomUUID(),
-            username: registerUsername,
-            password: registerPassword, //  plain text password for demo
-            role: 'user', // Default role
-        };
-        setUsers([...users, newUser]);
-        setRegisterUsername('');
-        setRegisterPassword('');
-        setIsRegisterDialogOpen(false);
-        setCurrentUser(newUser); // Log in the new user
     };
-
-    // Ticket Management
-    const validateTicketForm = (ticket: Ticket) => {
-        const errors: { [key: string]: string } = {};
-
-        if (!ticket.tipoDeTicket) {
-            errors.tipoDeTicket = 'El tipo de ticket es requerido.';
-        }
-        if (!ticket.quienReporta) {
-            errors.quienReporta = 'Quién reporta es requerido.';
-        }
-        if (!ticket.fecha) {
-            errors.fecha = 'La fecha es requerida.';
-        }
-        if (!ticket.estatus) {
-            errors.estatus = 'El estatus es requerido.';
-        }
-        if (!ticket.asesorQueAtiende) {
-            errors.asesorQueAtiende = 'El asesor que atiende es requerido.';
-        }
-        if (!ticket.empresa) {
-            errors.empresa = 'La empresa es requerida.';
-        }
-        if (!ticket.descripcion) { // Validate description
-            errors.descripcion = 'La descripción es requerida.';
-        }
-
-        return errors;
-    };
-
-    const handleCreateTicket = () => {
-        const errors = validateTicketForm(newTicket);
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
-
-        setIsCreatingTicket(true); // Set creating flag
-        const ticketToAdd: Ticket = { ...newTicket, idTicket: crypto.randomUUID() };
-        setTickets([...tickets, ticketToAdd]);
-        setNewTicket({  // Reset form
-            idTicket: '',
-            tipoDeTicket: '',
-            quienReporta: '',
-            fecha: formatDate(new Date().toISOString().split('T')[0]),
-            estatus: 'Abierto',
-            asesorQueAtiende: '',
-            empresa: '',
-            descripcion: '',
-        });
-        setIsCreatingTicket(false); // Reset creating flag
-    };
-
-    const handleEditTicket = (ticket: Ticket) => {
-        setEditingTicket(ticket);
-        setFormErrors({}); // Clear errors
-    };
-
-    const handleSaveTicket = () => {
-        if (!editingTicket) return;
-        const errors = validateTicketForm(editingTicket);
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
-
-        setTickets(tickets.map(t => t.idTicket === editingTicket.idTicket ? editingTicket : t));
-        setEditingTicket(null);
-    };
-
-    const handleDeleteTicket = (idTicket: string) => {
-        setTicketToDelete(idTicket);
-        setIsDeleteDialogOpen(true);
-    };
-
-    const confirmDeleteTicket = () => {
-        if (ticketToDelete) {
-            setTickets(tickets.filter(t => t.idTicket !== ticketToDelete));
-        }
-        setIsDeleteDialogOpen(false);
-        setTicketToDelete(null);
-    };
-
-    const cancelDeleteTicket = () => {
-        setIsDeleteDialogOpen(false);
-        setTicketToDelete(null);
-    };
-
-    // Autorización
-    const isAdmin = currentUser?.role === 'admin';
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            {/* Navbar */}
-            <nav className="bg-white dark:bg-gray-800 shadow-md py-4">
-                <div className="container mx-auto flex justify-between items-center px-4">
-                    <h1 className="text-xl font-bold text-gray-800 dark:text-white">Sistema de Tickets</h1>
-                    <div className="flex items-center gap-4">
-                        {currentUser ? (
-                            <>
-                                <span className="text-gray-700 dark:text-gray-300">
-                                    <UserPlus className="inline-block mr-1 w-4 h-4" />
-                                    {currentUser.username}
-                                </span>
-                                <Button
-                                    onClick={handleLogout}
-                                    variant="destructive"
-                                    className="bg-red-500 hover:bg-red-600 text-white"
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Cerrar Sesión
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    onClick={() => setIsLoginDialogOpen(true)}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                                >
-                                    <LogIn className="mr-2 h-4 w-4" />
-                                    Iniciar Sesión
-                                </Button>
-                                <Button
-                                    onClick={() => setIsRegisterDialogOpen(true)}
-                                    className="bg-green-500 hover:bg-green-600 text-white"
-                                >
-                                    <UserPlus className="mr-2 h-4 w-4" />
-                                    Registrarse
-                                </Button>
-                            </>
-                        )}
-                    </div>
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="tipoDeTicket">Tipo de Ticket</Label>
+                    <Input
+                        id="tipoDeTicket"
+                        name="tipoDeTicket"
+                        value={formData.tipoDeTicket}
+                        onChange={handleChange}
+                        placeholder="Ej. Soporte, Incidencia"
+                        className={errors.tipoDeTicket ? 'border-red-500' : ''}
+                    />
+                    {errors.tipoDeTicket && <p className="text-red-500 text-sm mt-1">{errors.tipoDeTicket}</p>}
                 </div>
-            </nav>
+                <div>
+                    <Label htmlFor="quienReporta">Quién Reporta</Label>
+                    <Input
+                        id="quienReporta"
+                        name="quienReporta"
+                        value={formData.quienReporta}
+                        onChange={handleChange}
+                        placeholder="Nombre de quien reporta"
+                        className={errors.quienReporta ? 'border-red-500' : ''}
+                    />
+                    {errors.quienReporta && <p className="text-red-500 text-sm mt-1">{errors.quienReporta}</p>}
+                </div>
+            </div>
 
-            {/* Main Content */}
-            <div className="container mx-auto p-4">
-                {/* Conditional Rendering based on Authentication */}
-                {!currentUser ? (
-                    <div className="text-center">
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
-                            Por favor, inicia sesión o regístrate para acceder al sistema de tickets.
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        {isAdmin && (
-                            <div className="mb-6">
-                                <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
-                                    <Users className="mr-2 h-5 w-5" />
-                                    Administrar Tickets
-                                </h2>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="fecha">Fecha</Label>
+                    <Input
+                        id="fecha"
+                        type="date"
+                        name="fecha"
+                        value={formData.fecha}
+                        onChange={handleChange}
+                        className={errors.fecha ? 'border-red-500' : ''}
+                    />
+                    {errors.fecha && <p className="text-red-500 text-sm mt-1">{errors.fecha}</p>}
+                </div>
+                <div>
+                    <Label htmlFor="estatus">Estatus</Label>
+                    <Select
+                        value={formData.estatus}
+                        onValueChange={(value) => setFormData({ ...formData, estatus: value })}
+                    >
+                        <SelectTrigger className={errors.estatus ? 'border-red-500' : ''}>
+                            <SelectValue placeholder="Selecciona un estatus" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Abierto">Abierto</SelectItem>
+                            <SelectItem value="En Proceso">En Proceso</SelectItem>
+                            <SelectItem value="Resuelto">Resuelto</SelectItem>
+                            <SelectItem value="Cerrado">Cerrado</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {errors.estatus && <p className="text-red-500 text-sm mt-1">{errors.estatus}</p>}
+                </div>
+            </div>
 
-                                {/* Create Ticket Section */}
-                                <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center">
-                                        <PlusCircle className="mr-2 h-5 w-5" />
-                                        Crear Nuevo Ticket
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {/* Tipo de Ticket */}
-                                        <div>
-                                            <Label htmlFor="tipoDeTicket" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Tipo de Ticket
-                                            </Label>
-                                            <Select
-                                                onValueChange={(value) => setNewTicket({ ...newTicket, tipoDeTicket: value })}
-                                                value={newTicket.tipoDeTicket}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecciona un tipo" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Soporte">Soporte</SelectItem>
-                                                    <SelectItem value="Incidencia">Incidencia</SelectItem>
-                                                    <SelectItem value="Consulta">Consulta</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            {formErrors.tipoDeTicket && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.tipoDeTicket}</p>
-                                            )}
-                                        </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="asesorQueAtiende">Asesor que Atiende</Label>
+                    <Select
+                        value={formData.asesorQueAtiende}
+                        onValueChange={(value) => setFormData({ ...formData, asesorQueAtiende: value })}
+                    >
+                        <SelectTrigger className={errors.asesorQueAtiende ? 'border-red-500' : ''}>
+                            <SelectValue placeholder="Selecciona un asesor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {asesores.map((asesor) => (
+                                <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre}>
+                                    {asesor.nombre}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.asesorQueAtiende && <p className="text-red-500 text-sm mt-1">{errors.asesorQueAtiende}</p>}
+                </div>
+                <div>
+                    <Label htmlFor="empresa">Empresa</Label>
+                    <Select
+                        value={formData.empresa}
+                        onValueChange={(value) => setFormData({ ...formData, empresa: value })}
+                    >
+                        <SelectTrigger className={errors.empresa ? 'border-red-500' : ''}>
+                            <SelectValue placeholder="Selecciona una empresa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {empresas.map((empresa) => (
+                                <SelectItem key={empresa.nombre} value={empresa.nombre}>
+                                    {empresa.nombre}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.empresa && <p className="text-red-500 text-sm mt-1">{errors.empresa}</p>}
+                </div>
+            </div>
 
-                                        {/* Quién Reporta */}
-                                        <div>
-                                            <Label htmlFor="quienReporta" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Quién Reporta
-                                            </Label>
-                                            <Select
-                                                onValueChange={(value) => setNewTicket({ ...newTicket, quienReporta: value })}
-                                                value={newTicket.quienReporta}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecciona un cliente" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {clientes.map(cliente => (
-                                                        <SelectItem key={cliente.correo} value={cliente.nombre}>
-                                                            {cliente.nombre}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {formErrors.quienReporta && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.quienReporta}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Fecha */}
-                                        <div>
-                                            <Label htmlFor="fecha" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Fecha
-                                            </Label>
-                                            <Input
-                                                type="date"
-                                                id="fecha"
-                                                value={newTicket.fecha}
-                                                onChange={(e) => setNewTicket({ ...newTicket, fecha: formatDate(e.target.value) })}
-                                                className="w-full"
-                                            />
-                                            {formErrors.fecha && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.fecha}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Estatus */}
-                                        <div>
-                                            <Label htmlFor="estatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Estatus
-                                            </Label>
-                                            <Select
-                                                onValueChange={(value) => setNewTicket({ ...newTicket, estatus: value })}
-                                                value={newTicket.estatus}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecciona un estatus" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Abierto">Abierto</SelectItem>
-                                                    <SelectItem value="En Proceso">En Proceso</SelectItem>
-                                                    <SelectItem value="Cerrado">Cerrado</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            {formErrors.estatus && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.estatus}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Asesor que Atiende */}
-                                        <div>
-                                            <Label htmlFor="asesorQueAtiende" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Asesor que Atiende
-                                            </Label>
-                                            <Select
-                                                onValueChange={(value) => setNewTicket({ ...newTicket, asesorQueAtiende: value })}
-                                                value={newTicket.asesorQueAtiende}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecciona un asesor" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {asesores.map(asesor => (
-                                                        <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre}>
-                                                            {asesor.nombre}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {formErrors.asesorQueAtiende && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.asesorQueAtiende}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Empresa */}
-                                        <div>
-                                            <Label htmlFor="empresa" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Empresa
-                                            </Label>
-                                            <Select
-                                                onValueChange={(value) => setNewTicket({ ...newTicket, empresa: value })}
-                                                value={newTicket.empresa}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecciona una empresa" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {empresas.map(empresa => (
-                                                        <SelectItem key={empresa.nombre} value={empresa.nombre}>
-                                                            {empresa.nombre}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {formErrors.empresa && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.empresa}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Descripción */}
-                                        <div className="col-span-full">
-                                            <Label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</Label>
-                                            <Textarea
-                                                id="descripcion"
-                                                value={newTicket.descripcion}
-                                                onChange={(e) => setNewTicket({ ...newTicket, descripcion: e.target.value })}
-                                                rows={4}
-                                                className="w-full"
-                                                placeholder="Ingrese una descripción del problema..."
-                                            />
-                                            {formErrors.descripcion && (
-                                                <p className="mt-1 text-sm text-red-500">{formErrors.descripcion}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 flex justify-end">
-                                        <Button
-                                            onClick={handleCreateTicket}
-                                            disabled={isCreatingTicket}
-                                            className={cn(
-                                                "bg-green-500 hover:bg-green-600 text-white",
-                                                isCreatingTicket && "opacity-70 cursor-not-allowed"
-                                            )}
-                                        >
-                                            {isCreatingTicket ? (
-                                                <>
-                                                    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                    Creando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                                    Crear Ticket
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Ticket List */}
-                                <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center">
-                                        <Briefcase className="mr-2 h-5 w-5" />
-                                        Lista de Tickets
-                                    </h3>
-                                    <div className="rounded-md border">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-[100px] text-left text-gray-600 dark:text-gray-400">ID Ticket</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Tipo</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Quién Reporta</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Fecha</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Estatus</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Asesor</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Empresa</TableHead>
-                                                    <TableHead className="text-left text-gray-600 dark:text-gray-400">Descripción</TableHead> {/* Added Description */}
-                                                    <TableHead className="text-right text-gray-600 dark:text-gray-400">Acciones</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                <AnimatePresence>
-                                                    {tickets.map((ticket) => (
-editingTicket?.idTicket === ticket.idTicket ? (
-                                                            <motion.tr
-                                                                key={ticket.idTicket}
-                                                                variants={listItemVariants}
-                                                                initial="hidden"
-                                                                animate="visible"
-                                                                exit="exit"
-                                                            >
-                                                                <TableCell className="font-medium">{editingTicket.idTicket}</TableCell>
-                                                                <TableCell>
-                                                                    <Select
-                                                                        onValueChange={(value) => setEditingTicket({ ...editingTicket, tipoDeTicket: value })}
-                                                                        value={editingTicket.tipoDeTicket}
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Selecciona un tipo" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="Soporte">Soporte</SelectItem>
-                                                                            <SelectItem value="Incidencia">Incidencia</SelectItem>
-                                                                            <SelectItem value="Consulta">Consulta</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    {formErrors.tipoDeTicket && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.tipoDeTicket}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Select
-                                                                        onValueChange={(value) => setEditingTicket({ ...editingTicket, quienReporta: value })}
-                                                                        value={editingTicket.quienReporta}
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Selecciona un cliente" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {clientes.map(cliente => (
-                                                                                <SelectItem key={cliente.correo} value={cliente.nombre}>
-                                                                                    {cliente.nombre}
-                                                                                </SelectItem>
-                                                                            ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    {formErrors.quienReporta && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.quienReporta}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Input
-                                                                        type="date"
-                                                                        value={editingTicket.fecha}
-                                                                        onChange={(e) => setEditingTicket({ ...editingTicket, fecha: formatDate(e.target.value) })}
-                                                                        className="w-full"
-                                                                    />
-                                                                    {formErrors.fecha && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.fecha}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Select
-                                                                        onValueChange={(value) => setEditingTicket({ ...editingTicket, estatus: value })}
-                                                                        value={editingTicket.estatus}
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Selecciona un estatus" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="Abierto">Abierto</SelectItem>
-                                                                            <SelectItem value="En Proceso">En Proceso</SelectItem>
-                                                                            <SelectItem value="Cerrado">Cerrado</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    {formErrors.estatus && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.estatus}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Select
-                                                                        onValueChange={(value) => setEditingTicket({ ...editingTicket, asesorQueAtiende: value })}
-                                                                        value={editingTicket.asesorQueAtiende}
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Selecciona un asesor" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {asesores.map(asesor => (
-                                                                                <SelectItem key={asesor.numeroDeTrabajador} value={asesor.nombre}>
-                                                                                    {asesor.nombre}
-                                                                                </SelectItem>
-                                                                            ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    {formErrors.asesorQueAtiende && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.asesorQueAtiende}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Select
-                                                                        onValueChange={(value) => setEditingTicket({ ...editingTicket, empresa: value })}
-                                                                        value={editingTicket.empresa}
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Selecciona una empresa" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {empresas.map(empresa => (
-                                                                                <SelectItem key={empresa.nombre} value={empresa.nombre}>
-                                                                                    {empresa.nombre}
-                                                                                </SelectItem>
-                                                                            ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    {formErrors.empresa && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.empresa}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Textarea
-                                                                        value={editingTicket.descripcion}
-                                                                        onChange={(e) => setEditingTicket({ ...editingTicket, descripcion: e.target.value })}
-                                                                        rows={4}
-                                                                        className="w-full"
-                                                                        placeholder="Ingrese una descripción del problema..."
-                                                                    />
-                                                                    {formErrors.descripcion && (
-                                                                        <p className="mt-1 text-sm text-red-500">{formErrors.descripcion}</p>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <Button
-                                                                        onClick={handleSaveTicket}
-                                                                        className="bg-green-500 hover:bg-green-600 text-white mr-2"
-                                                                    >
-                                                                        <Save className="h-4 w-4" />
-                                                                    </Button>
-                                                                    <Button
-                                                                        onClick={() => setEditingTicket(null)}
-                                                                        className="bg-gray-500 hover:bg-gray-600 text-white"
-                                                                    >
-                                                                        <XCircle className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </motion.tr>
-                                                        ) : (
-                                                            <motion.tr
-                                                                key={ticket.idTicket}
-                                                                variants={listItemVariants}
-                                                                initial="hidden"
-                                                                animate="visible"
-                                                                exit="exit"
-                                                            >
-                                                                <TableCell className="font-medium text-gray-900 dark:text-white">{ticket.idTicket}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.tipoDeTicket}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.quienReporta}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{formatDate(ticket.fecha)}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.estatus}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.asesorQueAtiende}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.empresa}</TableCell>
-                                                                <TableCell className="text-gray-700 dark:text-gray-300">{ticket.descripcion}</TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <Button
-                                                                        onClick={() => handleEditTicket(ticket)}
-                                                                        className="bg-blue-500 hover:bg-blue-600 text-white mr-2"
-                                                                    >
-                                                                        <Edit className="h-4 w-4" />
-                                                                    </Button>
-                                                                    <Button
-                                                                        onClick={() => handleDeleteTicket(ticket.idTicket)}
-                                                                        className="bg-red-500 hover:bg-red-600 text-white"
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </motion.tr>
-                                                        )
-                                                    ))}
-                                                </AnimatePresence>
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Delete Confirmation Dialog */}
-                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Eliminar Ticket</DialogTitle>
-                                    <DialogDescription>
-                                        ¿Estás seguro de que deseas eliminar este ticket? Esta acción no se puede deshacer.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter>
-                                    <Button variant="destructive" onClick={confirmDeleteTicket} className="bg-red-500 hover:bg-red-600 text-white">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
-                                    </Button>
-                                    <Button variant="secondary" onClick={cancelDeleteTicket} className="bg-gray-500 hover:bg-gray-600 text-white">
-                                        Cancelar
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Login Dialog */}
-                        <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Iniciar Sesión</DialogTitle>
-                                    <DialogDescription>
-                                        Inicia sesión para acceder al sistema de tickets.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="username" className="text-right">
-                                            Usuario
-                                        </Label>
-                                        <Input
-                                            id="username"
-                                            value={loginUsername}
-                                            onChange={(e) => setLoginUsername(e.target.value)}
-                                            className="col-span-3"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="password" className="text-right">
-                                            Contraseña
-                                        </Label>
-                                        <Input
-                                            type="password"
-                                            id="password"
-                                            value={loginPassword}
-                                            onChange={(e) => setLoginPassword(e.target.value)}
-                                            className="col-span-3"
-                                        />
-                                    </div>
-                                    {loginError && (
-                                        <Alert variant="destructive">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertTitle>Error</AlertTitle>
-                                            <AlertDescription>{loginError}</AlertDescription>
-                                        </Alert>
-                                    )}
-                                </div>
-                                <DialogFooter>
-                                    <Button
-                                        onClick={handleLogin}
-                                        className="bg-blue-500 hover:bg-blue-600 text-white w-full"
-                                    >
-                                        Iniciar Sesión
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Register Dialog */}
-                        <Dialog open={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen}>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Registrarse</DialogTitle>
-                                    <DialogDescription>
-                                        Regístrate para crear una cuenta y acceder al sistema de tickets.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="register-username" className="text-right">
-                                            Usuario
-                                        </Label>
-                                        <Input
-                                            id="register-username"
-                                            value={registerUsername}
-                                            onChange={(e) => setRegisterUsername(e.target.value)}
-                                            className="col-span-3"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="register-password" className="text-right">
-                                            Contraseña
-                                        </Label>
-                                        <Input
-                                            type="password"
-                                            id="register-password"
-                                            value={registerPassword}
-                                            onChange={(e) => setRegisterPassword(e.target.value)}
-                                            className="col-span-3"
-                                        />
-                                    </div>
-                                    {registerError && (
-                                        <Alert variant="destructive">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertTitle>Error</AlertTitle>
-                                            <AlertDescription>{registerError}</AlertDescription>
-                                        </Alert>
-                                    )}
-                                </div>
-                                <DialogFooter>
-                                    <Button
-                                        onClick={handleRegister}
-                                        className="bg-green-500 hover:bg-green-600 text-white w-full"
-                                    >
-                                        Registrarse
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                    </>
-                )}
+            <div className="flex justify-end gap-4 mt-6">
+                <CustomButton variant="outline" onClick={onCancel}>
+                    <X className="mr-2 h-4 w-4" /> Cancelar
+                </CustomButton>
+                <CustomButton onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" /> {isEditing ? 'Guardar' : 'Crear'}
+                </CustomButton>
             </div>
         </div>
     );
 };
 
-export default TicketApp;
+const LoginForm = ({ onLogin }: { onLogin: (usuario: Usuario) => void }) => {
+    const [correo, setCorreo] = useState('');
+    const [contrasena, setContrasena] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        // Simulación de autenticación (reemplazar con lógica real)
+        setTimeout(() => {
+            const usuario = initialUsuarios.find(u => u.correo === correo && u.contrasena === contrasena);
+            setIsLoading(false);
+            if (usuario) {
+                onLogin(usuario);
+            } else {
+                setError('Credenciales inválidas. Por favor, verifica tu correo y contraseña.');
+            }
+        }, 1000);
+    };
+
+    return (
+        <Card className="w-[350px] shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-center text-2xl">Iniciar Sesión</CardTitle>
+                <CardDescription className="text-center">
+                    Ingresa a la plataforma de gestión de tickets
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="correo">Correo</Label>
+                        <Input
+                            id="correo"
+                            type="email"
+                            placeholder="Ingrese su correo"
+                            value={correo}
+                            onChange={(e) => setCorreo(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="contrasena">Contraseña</Label>
+                        <Input
+                            id="contrasena"
+                            type="password"
+                            placeholder="Ingrese su contraseña"
+                            value={contrasena}
+                            onChange={(e) => setContrasena(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Iniciando sesión...
+                            </>
+                        ) : (
+                            <>
+                                <LogIn className="mr-2 h-4 w-4" /> Iniciar Sesión
+                            </>
+                        )}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
+    );
+};
+
+const RegistroForm = ({ onRegister }: { onRegister: (usuario: Usuario) => void }) => {
+    const [nombre, setNombre] = useState('');
+    const [correo, setCorreo] = useState('');
+    const [contrasena, setContrasena] = useState('');
+    const [rol, setRol] = useState<'admin' | 'cliente'>('cliente');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [registroExitoso, setRegistroExitoso] = useState(false);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        // Validación básica
+        if (!nombre || !correo || !contrasena) {
+            setError('Todos los campos son requeridos.');
+            setIsLoading(false);
+            return;
+        }
+
+        // Simulación de registro (reemplazar con lógica real)
+        setTimeout(() => {
+            // Verificar si el correo ya existe
+            const correoExistente = initialUsuarios.find(u => u.correo === correo);
+            if (correoExistente) {
+                setError('Este correo ya está registrado.');
+                setIsLoading(false);
+                return;
+            }
+
+            // Crear nuevo usuario (simulado)
+            const nuevoUsuario: Usuario = {
+                id: String(initialUsuarios.length + 1), // Simulación de ID
+                nombre,
+                correo,
+                contrasena,
+                rol,
+            };
+
+            // Agregar a la lista de usuarios (simulado)
+            initialUsuarios.push(nuevoUsuario); // Esto NO es persistente
+
+            onRegister(nuevoUsuario); // Llama a la función de registro para actualizar el estado en App
+            setIsLoading(false);
+            setRegistroExitoso(true); // Establecer el estado de registro exitoso
+        }, 1500);
+    };
+
+    return (
+        <Card className="w-[350px] shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-center text-2xl">Registro</CardTitle>
+                <CardDescription className="text-center">
+                    Crea una cuenta para acceder a la plataforma
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="nombre">Nombre</Label>
+                        <Input
+                            id="nombre"
+                            type="text"
+                            placeholder="Ingrese su nombre"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="correo">Correo</Label>
+                        <Input
+                            id="correo"
+                            type="email"
+                            placeholder="Ingrese su correo"
+                            value={correo}
+                            onChange={(e) => setCorreo(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="contrasena">Contraseña</Label>
+                        <Input
+                            id="contrasena"
+                            type="password"
+                            placeholder="Ingrese su contraseña"
+                            value={contrasena}
+                            onChange={(e) => setContrasena(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="rol">Rol</Label>
+                        <Select onValueChange={(value) => setRol(value as 'admin' | 'cliente')} value={rol}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccione un rol" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="cliente">Cliente</SelectItem>
+                                <SelectItem value="admin">Administrador</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    {registroExitoso && (
+                         <Alert variant="success">
+                            <CheckCircle className="h-4 w-4" />
+                            <AlertTitle>Registro Exitoso</AlertTitle>
+                            <AlertDescription>
+                                Su cuenta ha sido creada exitosamente.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Registrando...
+                            </>
+                        ) : (
+                            <>
+                                <UserPlus className="mr-2 h-4 w-4" /> Registrarse
+                            </>
+                        )}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
+    );
+};
+
+const PerfilUsuarioForm = ({ usuario, onUpdate }: { usuario: Usuario, onUpdate: (usuario: Usuario) => void }) => {
+    const [nombre, setNombre] = useState(usuario.nombre);
+    const [correo, setCorreo] = useState(usuario.correo);
+    const [contrasena, setContrasena] = useState(''); // No precargar la contraseña por seguridad
+    const [rol, setRol] = useState(usuario.rol);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [updateExitoso, setUpdateExitoso] = useState(false);
+
+      const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        // Validación básica
+        if (!nombre || !correo) {
+            setError('Nombre y correo son requeridos.');
+            setIsLoading(false);
+            return;
+        }
+
+        // Simulación de actualización (reemplazar con lógica real)
+        setTimeout(() => {
+            // Crear usuario actualizado
+            const usuarioActualizado: Usuario = {
+                ...usuario, // Mantener el ID
+                nombre,
+                correo,
+                // Solo actualiza la contraseña si se proporciona una nueva
+                contrasena: contrasena ? contrasena : usuario.contrasena,
+                rol,
+            };
+            onUpdate(usuarioActualizado); // Actualiza el estado en App
+            setIsLoading(false);
+            setUpdateExitoso(true);
+        }, 1000);
+    };
+
+    return (
+        <Card className="w-[350px] shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-center text-2xl">Perfil de Usuario</CardTitle>
+                <CardDescription className="text-center">
+                    Actualiza tu información de perfil
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="nombre">Nombre</Label>
+                        <Input
+                            id="nombre"
+                            type="text"
+                            placeholder="Ingrese su nombre"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="correo">Correo</Label>
+                        <Input
+                            id="correo"
+                            type="email"
+                            placeholder="Ingrese su correo"
+                            value={correo}
+                            onChange={(e) => setCorreo(e.target.value)}
+                            required
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="contrasena">Contraseña (Opcional)</Label>
+                        <Input
+                            id="contrasena"
+                            type="password"
+                            placeholder="Ingrese su nueva contraseña (opcional)"
+                            value={contrasena}
+                            onChange={(e) => setContrasena(e.target.value)}
+                            className="w-full"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="rol">Rol</Label>
+                         <Select onValueChange={(value) => setRol(value as 'admin' | 'cliente')} value={rol}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccione un rol" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="cliente">Cliente</SelectItem>
+                                <SelectItem value="admin">Administrador</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    {updateExitoso && (
+                        <Alert variant="success">
+                            <CheckCircle className="h-4 w-4" />
+                            <AlertTitle>Perfil Actualizado</AlertTitle>
+                            <AlertDescription>
+                                Su perfil ha sido actualizado exitosamente.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Actualizando...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="mr-2 h-4 w-4" /> Actualizar Perfil
+                            </>
+                        )}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
+    );
+};
+
+const App = () => {
+    const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+    const [empresas] = useState<Empresa[]>(initialEmpresas);
+    const [asesores] = useState<Asesor[]>(initialAsesores);
+    const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios); // Usar el estado para usuarios
+    const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
+    const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
+    const [showRegistro, setShowRegistro] = useState(false);
+    const [showPerfil, setShowPerfil] = useState(false);
+    const [showEmpresas, setShowEmpresas] = useState(false); // Estado para mostrar la lista de empresas
+    const [showAsesores, setShowAsesores] = useState(false);  // Estado para mostrar la lista de asesores
+    const [showClientes, setShowClientes] = useState(false);
+
+    // Funciones para manejar tickets
+    const handleAddTicket = (newTicket: Ticket) => {
+        const ticketToAdd = { ...newTicket, idTicket: String(tickets.length + 1) }; // Generar ID
+        setTickets([...tickets, ticketToAdd]);
+        setIsCreatingTicket(false);
+        setEditingTicketId(null);
+    };
+
+    const handleUpdateTicket = (updatedTicket: Ticket) => {
+        setTickets(tickets.map(t => t.idTicket === updatedTicket.idTicket ? updatedTicket : t));
+        setEditingTicketId(null);
+    };
+
+    const handleDeleteTicket = (idTicket: string) => {
+        setTickets(tickets.filter(t => t.idTicket !== idTicket));
+        setEditingTicketId(null);
+    };
+
+    const handleCreateNewTicket = () => {
+        setIsCreatingTicket(true);
+        setEditingTicketId(null); // Asegurarse de que no esté en modo de edición
+    };
+
+    const handleCancelTicket = () => {
+        setIsCreatingTicket(false);
+        setEditingTicketId(null);
+    };
+
+    // Funciones para manejar login/registro/perfil
+    const handleLogin = (usuario: Usuario) => {
+        setIsLoggedIn(true);
+        setUsuarioLogueado(usuario);
+    };
+
+    const handleLogout = () => {
+        setIsLoggedIn(false);
+        setUsuarioLogueado(null);
+        setShowPerfil(false); // Cerrar el perfil al cerrar sesión
+    };
+
+     const handleRegister = (nuevoUsuario: Usuario) => {
+        // Actualiza la lista de usuarios.
+        setUsuarios([...usuarios, nuevoUsuario]);
+        // Inicia sesión automáticamente después del registro (opcional).
+        handleLogin(nuevoUsuario);
+        setShowRegistro(false); // Cierra el formulario de registro.
+    };
+
+    const handleUpdatePerfil = (usuarioActualizado: Usuario) => {
+        setUsuarios(usuarios.map((u) => (u.id === usuarioActualizado.id ? usuarioActualizado : u)));
+        setUsuarioLogueado(usuarioActualizado);
+        setShowPerfil(false); // Opcional: cierra el formulario después de la actualización
+    };
+
+    const initialTicket: Ticket = {
+        idTicket: '',
+        tipoDeTicket: '',
+        quienReporta: '',
+        fecha: '',
+        estatus: '',
+        asesorQueAtiende: '',
+        empresa: '',
+    };
+
+    // Función para renderizar contenido basado en el estado de la aplicación
+    const renderContent = () => {
+        if (!isLoggedIn) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full gap-8">
+                    <LoginForm onLogin={handleLogin} />
+                    <Button variant="outline" onClick={() => setShowRegistro(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Registrarse
+                    </Button>
+                    {showRegistro && (
+                        <Dialog open={showRegistro} onOpenChange={setShowRegistro}>
+                            <DialogContent>
+                                <RegistroForm onRegister={handleRegister} />
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </div>
+            );
+        }
+
+        if (showPerfil) {
+             return (
+                <div className="flex items-center justify-center h-full">
+                    <PerfilUsuarioForm usuario={usuarioLogueado!} onUpdate={handleUpdatePerfil} />
+                </div>
+            );
+        }
+
+        if (showEmpresas) {
+            return (
+                <div className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Lista de Empresas</h2>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Dirección</TableHead>
+                                <TableHead>Teléfono</TableHead>
+                                <TableHead>Correo</TableHead>
+                                 <TableHead>Contacto</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {empresas.map((empresa, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{empresa.nombre}</TableCell>
+                                    <TableCell>{empresa.direccion}</TableCell>
+                                    <TableCell>{empresa.telefono}</TableCell>
+                                    <TableCell>{empresa.correo}</TableCell>
+                                    <TableCell>{empresa.nombreDeContacto}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <div className="mt-4">
+                        <Button onClick={() => setShowEmpresas(false)}>Volver a Tickets</Button>
+                    </div>
+                </div>
+            )
+        }
+
+        if (showAsesores) {
+             return (
+                <div className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Lista de Asesores</h2>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Teléfono</TableHead>
+                                <TableHead>Correo</TableHead>
+                                <TableHead>Número de Trabajador</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {asesores.map((asesor, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{asesor.nombre}</TableCell>
+                                    <TableCell>{asesor.telefono}</TableCell>
+                                    <TableCell>{asesor.correo}</TableCell>
+                                    <TableCell>{asesor.numeroDeTrabajador}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <div className="mt-4">
+                         <Button onClick={() => setShowAsesores(false)}>Volver a Tickets</Button>
+                    </div>
+                </div>
+            )
+        }
+
+        if (showClientes) {
+            return (
+              <div className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Lista de Clientes</h2>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Correo</TableHead>
+                                <TableHead>Empresa</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {initialClientes.map((cliente, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{cliente.nombre}</TableCell>
+                                    <TableCell>{cliente.correo}</TableCell>
+                                    <TableCell>{cliente.empresa}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                     <div className="mt-4">
+                         <Button onClick={() => setShowClientes(false)}>Volver a Tickets</Button>
+                    </div>
+                </div>
+            )
+        }
+
+        return (
+            <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold">Lista de Tickets</h1>
+                    <div className="flex gap-4">
+                        <CustomButton onClick={handleCreateNewTicket}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Nuevo Ticket
+                        </CustomButton>
+                         {usuarioLogueado?.rol === 'admin' && (
+                            <>
+                                <CustomButton onClick={() => setShowEmpresas(true)} variant="secondary">
+                                    <Building2 className="mr-2 h-4 w-4" /> Empresas
+                                </CustomButton>
+                                <CustomButton onClick={() => setShowAsesores(true)} variant="secondary">
+                                    <KeyRound className="mr-2 h-4 w-4" /> Asesores
+                                </CustomButton>
+                                 <CustomButton onClick={() => setShowClientes(true)} variant="secondary">
+                                    <UserPlus className="mr-2 h-4 w-4" /> Clientes
+                                </CustomButton>
+                            </>
+                        )}
+                    </div>
+                </div>
+                <AnimatePresence>
+                    {isCreatingTicket && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <Dialog open={isCreatingTicket} onOpenChange={setIsCreatingTicket}>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Crear Nuevo Ticket</DialogTitle>
+                                        <DialogDescription>
+                                            Por favor, complete el formulario para crear un nuevo ticket.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <TicketForm
+                                        ticket={initialTicket}
+                                        empresas={empresas}
+                                        asesores={asesores}
+                                        onSave={handleAddTicket}
+                                        onCancel={handleCancelTicket}
+                                        isEditing={false}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID Ticket</TableHead>
+                            <TableHead>Tipo de Ticket</TableHead>
+                            <TableHead>Quién Reporta</TableHead>
+                            <TableHead>Fecha</TableHead>
+                            <TableHead>Estatus</TableHead>
+                            <TableHead>Asesor</TableHead>
+                            <TableHead>Empresa</TableHead>
+                            <TableHead>Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <AnimatePresence>
+                            {tickets.map((ticket) => (
+                                <motion.tr
+                                    key={ticket.idTicket}
+                                    variants={listItemVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                >
+                                    <TableCell>{ticket.idTicket}</TableCell>
+                                    <TableCell>{ticket.tipoDeTicket}</TableCell>
+                                    <TableCell>{ticket.quienReporta}</TableCell>
+                                    <TableCell>{formatDate(ticket.fecha)}</TableCell>
+                                    <TableCell>{ticket.estatus}</TableCell>
+                                    <TableCell>{ticket.asesorQueAtiende}</TableCell>
+                                    <TableCell>{ticket.empresa}</TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <CustomButton
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setEditingTicketId(ticket.idTicket)}
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </CustomButton>
+                                            <CustomButton
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleDeleteTicket(ticket.idTicket)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </CustomButton>
+                                        </div>
+                                    </TableCell>
+                                    {editingTicketId === ticket.idTicket && (
+                                        <Dialog open={!!editingTicketId} onOpenChange={setEditingTicketId}>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Editar Ticket</DialogTitle>
+                                                    <DialogDescription>
+                                                        Modifique los detalles del ticket.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <TicketForm
+                                                    ticket={ticket}
+                                                    empresas={empresas}
+                                                    asesores={asesores}
+                                                    onSave={handleUpdateTicket}
+                                                    onCancel={() => setEditingTicketId(null)}
+                                                    isEditing={true}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </motion.tr>
+                            ))}
+                        </AnimatePresence>
+                    </TableBody>
+                </Table>
+            </div>
+        );
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-100">
+            {/* Barra de navegación */}
+            <nav className="bg-white shadow-md p-4 flex justify-between items-center">
+                <div className="font-bold text-xl">HelpDesk System</div>
+                {isLoggedIn && (
+                    <div className="flex gap-4 items-center">
+                         <span className="text-gray-700">
+                            <span className="font-semibold">Usuario:</span> {usuarioLogueado?.nombre} ({usuarioLogueado?.rol})
+                        </span>
+                        <Button variant="outline" onClick={() => setShowPerfil(true)}>
+                            <UserPlus className="mr-2 h-4 w-4" /> Perfil
+                        </Button>
+                        <Button variant="destructive" onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+                        </Button>
+                    </div>
+                )}
+            </nav>
+
+            {/* Contenido principal */}
+            <main className="container mx-auto mt-8">
+                {renderContent()}
+            </main>
+        </div>
+    );
+};
+
+export default App;
